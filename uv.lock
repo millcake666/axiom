@@ -17,10 +17,10 @@ members = [
     "axiom-lock",
     "axiom-metric",
     "axiom-migration",
+    "axiom-objectstore",
     "axiom-opensearch",
     "axiom-queue",
     "axiom-redis",
-    "axiom-s3",
     "axiom-serialization",
     "axiom-sqlalchemy",
     "axiom-task",
@@ -544,6 +544,37 @@ dev = [
 ]
 
 [[package]]
+name = "axiom-objectstore"
+version = "0.1.0"
+source = { editable = "axiom-objectstore" }
+dependencies = [
+    { name = "aiobotocore" },
+    { name = "axiom-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiobotocore", specifier = ">=2.15.0,<3" },
+    { name = "axiom-core", editable = "axiom-core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.16.0,<2" },
+    { name = "pytest", specifier = ">=8.0.0,<9" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0,<1" },
+    { name = "ruff", specifier = ">=0.11.13,<1" },
+]
+
+[[package]]
 name = "axiom-opensearch"
 version = "0.1.0"
 source = { editable = "olap/axiom-opensearch" }
@@ -614,37 +645,6 @@ dev = [
 requires-dist = [
     { name = "axiom-core", editable = "axiom-core" },
     { name = "redis", extras = ["asyncio"], specifier = ">=5.0.0,<6" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.16.0,<2" },
-    { name = "pytest", specifier = ">=8.0.0,<9" },
-    { name = "pytest-asyncio", specifier = ">=0.24.0,<1" },
-    { name = "ruff", specifier = ">=0.11.13,<1" },
-]
-
-[[package]]
-name = "axiom-s3"
-version = "0.1.0"
-source = { editable = "axiom-s3" }
-dependencies = [
-    { name = "aiobotocore" },
-    { name = "axiom-core" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiobotocore", specifier = ">=2.15.0,<3" },
-    { name = "axiom-core", editable = "axiom-core" },
 ]
 
 [package.metadata.requires-dev]

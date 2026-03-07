@@ -1,7 +1,7 @@
 [project]
-name = "axiom-s3"
+name = "axiom-objectstore"
 version = "0.1.0"
-description = "Axiom S3 — S3-compatible object storage integration"
+description = "Axiom ObjectStore — object and file storage integrations (S3, local disk)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
