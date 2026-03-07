@@ -140,32 +140,19 @@ jobs:
       - name: Set up Python
         run: uv python install 3.13
 
-      - name: Resolve package directory from tag
+      - name: Resolve package info from tag
         id: info
         run: |
           TAG="${{ matrix.tag }}"
-          VERSION="${TAG##*-v}"
           PACKAGE="${TAG%-v*}"
-
-          if [ -d "${PACKAGE}" ]; then
-            PKG_DIR="${PACKAGE}"
-          elif [ -d "oltp/${PACKAGE}" ]; then
-            PKG_DIR="oltp/${PACKAGE}"
-          elif [ -d "olap/${PACKAGE}" ]; then
-            PKG_DIR="olap/${PACKAGE}"
-          else
-            echo "ERROR: no directory found for package '${PACKAGE}'"
-            exit 1
-          fi
-
+          VERSION="${TAG##*-v}"
           echo "package=${PACKAGE}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}"  >> "$GITHUB_OUTPUT"
-          echo "pkg_dir=${PKG_DIR}"  >> "$GITHUB_OUTPUT"
 
       - name: Build package
         run: |
           mkdir -p dist
-          uv build "${{ steps.info.outputs.pkg_dir }}" --out-dir dist/
+          uv build --package "${{ steps.info.outputs.package }}" --out-dir dist/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
