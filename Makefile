@@ -56,3 +56,30 @@ setup-precommit: ## Install all hooks
 .PHONE: check-precommit
 check-precommit: ## Check
 	uv run pre-commit run --all-files
+
+
+# Release targets
+# ---------------
+# Usage:
+#   make release PKG=axiom-core VERSION=0.2.0
+#   make release PKG=axiom-sqlalchemy VERSION=1.0.0
+
+.PHONY: release
+release: ## Tag and push a package release. Requires PKG=axiom-core (version read from pyproject.toml)
+	@[ -n "$(PKG)" ] || (echo "ERROR: PKG is required. Usage: make release PKG=axiom-core" && exit 1)
+	@PKG_DIR=$$(                                          \
+	  if   [ -d "$(PKG)" ];          then echo "$(PKG)"; \
+	  elif [ -d "oltp/$(PKG)" ];     then echo "oltp/$(PKG)"; \
+	  elif [ -d "olap/$(PKG)" ];     then echo "olap/$(PKG)"; \
+	  else echo ""; fi                                    \
+	); \
+	[ -n "$$PKG_DIR" ] || (echo "ERROR: directory not found for '$(PKG)'" && exit 1); \
+	VERSION=$$(grep '^version' "$$PKG_DIR/pyproject.toml" | head -1 | sed 's/.*= *"\(.*\)"/\1/'); \
+	[ -n "$$VERSION" ] || (echo "ERROR: could not read version from $$PKG_DIR/pyproject.toml" && exit 1); \
+	TAG="$(PKG)-v$$VERSION"; \
+	echo "Package : $(PKG)"; \
+	echo "Version : $$VERSION  (from $$PKG_DIR/pyproject.toml)"; \
+	echo "Tag     : $$TAG"; \
+	git tag "$$TAG" && \
+	git push origin "$$TAG" && \
+	echo "✓ Tag $$TAG pushed — release workflow started."

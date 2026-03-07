@@ -1,0 +1,29 @@
+[project]
+name = "axiom-cache"
+version = "0.1.0"
+description = "Axiom cache — caching abstractions with in-memory and Redis backends"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "axiom-core",
+    "axiom-redis",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0,<2",
+    "pytest>=8.0.0,<9",
+    "pytest-asyncio>=0.24.0,<1",
+    "ruff>=0.11.13,<1",
+]
+
+[tool.uv.sources]
+axiom-core = { workspace = true }
+axiom-redis = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/axiom"]

@@ -1,10 +1,5 @@
-[project]
-name = "axiom"
-version = "0.1.0"
-description = "axiom core with plugins for FastAPI applicationse"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+[tool.uv.workspace]
+members = ["axiom-*", "oltp/axiom-*", "olap/axiom-*"]
 
 [dependency-groups]
 dev = [
@@ -40,6 +35,9 @@ max-line-length = 100
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["S101"]
 
 [tool.ruff.format]
 docstring-code-format = true

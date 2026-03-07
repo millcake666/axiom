@@ -1,0 +1,142 @@
+name: Release Package
+
+on:
+  push:
+    tags:
+      # Format: axiom-{package}-v{major}.{minor}.{patch}
+      # Examples: axiom-core-v1.0.0, axiom-sqlalchemy-v0.2.1
+      - "axiom-*-v*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  resolve:
+    name: Resolve package from tag
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.info.outputs.package }}
+      version: ${{ steps.info.outputs.version }}
+      pkg_dir: ${{ steps.info.outputs.pkg_dir }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract package info from tag
+        id: info
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+
+          # axiom-core-v1.0.0  -> package=axiom-core, version=1.0.0
+          VERSION="${TAG##*-v}"
+          PACKAGE="${TAG%-v*}"
+
+          # Locate the package directory (top-level, oltp/, or olap/)
+          if [ -d "${PACKAGE}" ]; then
+            PKG_DIR="${PACKAGE}"
+          elif [ -d "oltp/${PACKAGE}" ]; then
+            PKG_DIR="oltp/${PACKAGE}"
+          elif [ -d "olap/${PACKAGE}" ]; then
+            PKG_DIR="olap/${PACKAGE}"
+          else
+            echo "ERROR: no directory found for package '${PACKAGE}'"
+            exit 1
+          fi
+
+          # Verify pyproject.toml exists
+          if [ ! -f "${PKG_DIR}/pyproject.toml" ]; then
+            echo "ERROR: ${PKG_DIR}/pyproject.toml not found"
+            exit 1
+          fi
+
+          echo "package=${PACKAGE}"   >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"   >> "$GITHUB_OUTPUT"
+          echo "pkg_dir=${PKG_DIR}"   >> "$GITHUB_OUTPUT"
+
+          echo "Package : ${PACKAGE}"
+          echo "Version : ${VERSION}"
+          echo "Directory: ${PKG_DIR}"
+
+  build:
+    name: Build ${{ needs.resolve.outputs.package }}
+    runs-on: ubuntu-latest
+    needs: resolve
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Build package
+        run: |
+          mkdir -p dist
+          uv build "${{ needs.resolve.outputs.pkg_dir }}" --out-dir dist/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.resolve.outputs.package }}-dist
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release — ${{ needs.resolve.outputs.package }}@${{ needs.resolve.outputs.version }}
+    runs-on: ubuntu-latest
+    needs: [ resolve, build ]
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.resolve.outputs.package }}-dist
+          path: dist
+
+      - name: Build checksums
+        run: |
+          cd dist
+          sha256sum * | sort > checksums.txt
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ needs.resolve.outputs.package }} v${{ needs.resolve.outputs.version }}"
+          generate_release_notes: true
+          append_body: true
+          body: |
+            **Package:** `${{ needs.resolve.outputs.package }}`
+            **Version:** `${{ needs.resolve.outputs.version }}`
+
+            Full Changelog: https://github.com/${{ github.repository }}/commits/${{ github.ref_name }}
+          files: dist/*
+          fail_on_unmatched_files: true
+          overwrite_files: true
+
+  publish-pypi:
+    name: Publish to PyPI — ${{ needs.resolve.outputs.package }}
+    runs-on: ubuntu-latest
+    needs: [ resolve, build ]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ needs.resolve.outputs.package }}
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.resolve.outputs.package }}-dist
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
