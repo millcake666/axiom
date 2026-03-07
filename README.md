@@ -23,7 +23,6 @@ axiom/
 │   └── middleware/          #   logging, tracing middleware
 ├── axiom-lock/              # Distributed locking with cascading lock support
 ├── axiom-metric/            # Metrics — prometheus, statsd backends
-├── axiom-migration/         # Database migrations via Alembic
 ├── axiom-objectstore/       # Object/file storage — s3, local backends
 │   ├── base/                #   base classes and client factory
 │   ├── abs/                 #   abstract repository interfaces
@@ -111,7 +110,6 @@ axiom/
 
 | Package               | Description                                        |
 |-----------------------|----------------------------------------------------|
-| `axiom-migration`     | Database migrations via Alembic                    |
 | `axiom-serialization` | Data serialization, validation, and transformation |
 | `axiom-grpc`          | gRPC server and client plugin                      |
 
@@ -293,8 +291,8 @@ uv add axiom-core
 # FastAPI applications
 uv add axiom-fastapi
 
-# With SQLAlchemy + migrations
-uv add axiom-sqlalchemy axiom-migration
+# With SQLAlchemy
+uv add axiom-sqlalchemy
 
 # With Redis + caching
 uv add axiom-redis axiom-cache
@@ -437,7 +435,6 @@ echo '"""axiom.mypkg — description."""' > axiom-mypkg/src/axiom/mypkg/__init__
 
 ### Infrastructure
 
-- [ ] `axiom.migration` — Alembic migration runner with multi-database support
 - [ ] `axiom.serialization` — JSON/MessagePack serialization with pydantic support
 - [ ] `axiom.vault` — HashiCorp Vault client for secrets and dynamic credentials
 - [ ] `axiom.email` — email sending via SMTP / SendGrid / SES backends

@@ -1,0 +1,221 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pre-commit:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project dependencies
+        run: uv sync --all-packages --frozen
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  test:
+    name: Test / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    needs: pre-commit
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --all-packages --all-groups
+
+      - name: Run tests
+        run: uv run pytest --tb=short -q
+
+  auto-tag:
+    name: Auto-tag new versions
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    outputs:
+      tags: ${{ steps.tag.outputs.tags }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag packages whose version has no tag yet
+        id: tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          created_tags=()
+
+          tag_if_new() {
+            local pkg_dir="$1"
+            local pkg_name="$2"
+            local pyproject="$pkg_dir/pyproject.toml"
+
+            [ -f "$pyproject" ] || return
+
+            local version
+            version=$(grep '^version' "$pyproject" | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+            [ -n "$version" ] || { echo "[$pkg_name] could not read version, skipping"; return; }
+
+            local tag="${pkg_name}-v${version}"
+
+            if git tag -l "$tag" | grep -qx "$tag"; then
+              echo "[$pkg_name] v${version} — already tagged, skip"
+            else
+              echo "[$pkg_name] v${version} — new version, creating tag $tag"
+              git tag "$tag"
+              git push origin "$tag"
+              created_tags+=("$tag")
+            fi
+          }
+
+          for dir in axiom-*/; do
+            tag_if_new "${dir%/}" "${dir%/}"
+          done
+          for dir in oltp/axiom-*/; do
+            tag_if_new "${dir%/}" "$(basename "${dir%/}")"
+          done
+          for dir in olap/axiom-*/; do
+            tag_if_new "${dir%/}" "$(basename "${dir%/}")"
+          done
+
+          json=$(printf '%s\n' "${created_tags[@]}" | jq -R . | jq -sc .)
+          echo "tags=${json}" >> "$GITHUB_OUTPUT"
+          echo "Created tags: ${json}"
+
+  build:
+    name: Build ${{ matrix.tag }}
+    runs-on: ubuntu-latest
+    needs: auto-tag
+    if: needs.auto-tag.result == 'success' && needs.auto-tag.outputs.tags != '[]' && needs.auto-tag.outputs.tags != ''
+    strategy:
+      matrix:
+        tag: ${{ fromJson(needs.auto-tag.outputs.tags) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Resolve package directory from tag
+        id: info
+        run: |
+          TAG="${{ matrix.tag }}"
+          VERSION="${TAG##*-v}"
+          PACKAGE="${TAG%-v*}"
+
+          if [ -d "${PACKAGE}" ]; then
+            PKG_DIR="${PACKAGE}"
+          elif [ -d "oltp/${PACKAGE}" ]; then
+            PKG_DIR="oltp/${PACKAGE}"
+          elif [ -d "olap/${PACKAGE}" ]; then
+            PKG_DIR="olap/${PACKAGE}"
+          else
+            echo "ERROR: no directory found for package '${PACKAGE}'"
+            exit 1
+          fi
+
+          echo "package=${PACKAGE}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"  >> "$GITHUB_OUTPUT"
+          echo "pkg_dir=${PKG_DIR}"  >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        run: |
+          mkdir -p dist
+          uv build "${{ steps.info.outputs.pkg_dir }}" --out-dir dist/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.info.outputs.package }}-dist
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: Release ${{ matrix.tag }}
+    runs-on: ubuntu-latest
+    needs: [auto-tag, build]
+    if: needs.auto-tag.result == 'success' && needs.auto-tag.outputs.tags != '[]' && needs.auto-tag.outputs.tags != ''
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        tag: ${{ fromJson(needs.auto-tag.outputs.tags) }}
+
+    steps:
+      - name: Resolve package info from tag
+        id: info
+        run: |
+          TAG="${{ matrix.tag }}"
+          echo "package=${TAG%-v*}"  >> "$GITHUB_OUTPUT"
+          echo "version=${TAG##*-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.info.outputs.package }}-dist
+          path: dist
+
+      - name: Build checksums
+        run: |
+          cd dist
+          sha256sum * | sort > checksums.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.tag }}
+          name: "${{ steps.info.outputs.package }} v${{ steps.info.outputs.version }}"
+          generate_release_notes: true
+          append_body: true
+          body: |
+            **Package:** `${{ steps.info.outputs.package }}`
+            **Version:** `${{ steps.info.outputs.version }}`
+
+            Full Changelog: https://github.com/${{ github.repository }}/commits/${{ matrix.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true
+          overwrite_files: true
