@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   resolve:
@@ -119,24 +118,3 @@ jobs:
           files: dist/*
           fail_on_unmatched_files: true
           overwrite_files: true
-
-  publish-pypi:
-    name: Publish to PyPI — ${{ needs.resolve.outputs.package }}
-    runs-on: ubuntu-latest
-    needs: [ resolve, build ]
-    environment:
-      name: pypi
-      url: https://pypi.org/p/${{ needs.resolve.outputs.package }}
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.resolve.outputs.package }}-dist
-          path: dist
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
-          skip-existing: true

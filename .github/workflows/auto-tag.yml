@@ -1,0 +1,61 @@
+name: Auto-tag on version bump
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag:
+    name: Tag packages with new versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history required to check existing tags
+
+      - name: Tag packages whose version has no tag yet
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          tag_if_new() {
+            local pkg_dir="$1"
+            local pkg_name="$2"
+
+            local pyproject="$pkg_dir/pyproject.toml"
+            [ -f "$pyproject" ] || return
+
+            local version
+            version=$(grep '^version' "$pyproject" | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+            [ -n "$version" ] || { echo "[$pkg_name] could not read version, skipping"; return; }
+
+            local tag="${pkg_name}-v${version}"
+
+            if git tag -l "$tag" | grep -qx "$tag"; then
+              echo "[$pkg_name] v${version} — already tagged, skip"
+            else
+              echo "[$pkg_name] v${version} — new version, creating tag $tag"
+              git tag "$tag"
+              git push origin "$tag"
+            fi
+          }
+
+          # Top-level packages
+          for dir in axiom-*/; do
+            tag_if_new "${dir%/}" "${dir%/}"
+          done
+
+          # oltp packages
+          for dir in oltp/axiom-*/; do
+            tag_if_new "${dir%/}" "$(basename "${dir%/}")"
+          done
+
+          # olap packages
+          for dir in olap/axiom-*/; do
+            tag_if_new "${dir%/}" "$(basename "${dir%/}")"
+          done
