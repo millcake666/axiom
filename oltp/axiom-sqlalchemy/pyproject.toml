@@ -1,18 +1,25 @@
 [project]
 name = "axiom-sqlalchemy"
 version = "0.1.0"
-description = "Axiom SQLAlchemy integration — models, mixins, repositories, DAO"
+description = "Axiom SQLAlchemy integration — models, mixins, repositories, controllers"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "axiom-core",
+    "sqlalchemy[asyncio]>=2.0",
+    "pydantic>=2.0",
 ]
+
+[project.optional-dependencies]
+postgres = ["asyncpg>=0.29.0", "psycopg[binary]>=3.0"]
+sqlite = ["aiosqlite>=0.19.0"]
 
 [dependency-groups]
 dev = [
     "mypy>=1.16.0,<2",
     "pytest>=8.0.0,<9",
     "ruff>=0.11.13,<1",
+    "aiosqlite>=0.19.0",
 ]
 
 [tool.uv.sources]
