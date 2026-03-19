@@ -1,6 +1,8 @@
-"""Placeholder test for axiom-core."""
+"""Placeholder sanity test."""
 
 
-def test_placeholder() -> None:
-    """Verify that axiom-core package is importable."""
+def test_import():
+    """Verify axiom.core is importable and has correct version."""
     import axiom.core  # noqa: F401
+
+    assert axiom.core.__version__ == "0.1.0"
