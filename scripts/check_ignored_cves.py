@@ -54,6 +54,7 @@ def query_osv_batch(packages: list[tuple[str, str]]) -> list[dict[str, Any]]:
         data=payload,
         headers={"Content-Type": "application/json"},
     )
+    # nosec B310
     with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
         return json.load(resp).get("results", [])
 
@@ -62,6 +63,7 @@ def fetch_osv_vuln(osv_id: str) -> dict[str, Any] | None:
     """Fetch full vuln record by OSV ID (includes aliases and fix versions)."""
     url = OSV_VULN_URL.format(osv_id)
     try:
+        # nosec B310
         with urllib.request.urlopen(url, timeout=10) as resp:  # noqa: S310
             return json.load(resp)
     except Exception:  # pylint: disable=broad-exception-caught

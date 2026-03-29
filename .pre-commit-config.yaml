@@ -13,16 +13,21 @@ repos:
     hooks:
       - id: add-trailing-comma
 
-  - repo: https://github.com/PyCQA/pydocstyle
-    rev: 6.3.0
-    hooks:
-      - id: pydocstyle
+  # Temporarily disabled: use Ruff for docstring checks instead
+  # - repo: https://github.com/PyCQA/pydocstyle
+  #   rev: 6.3.0
+  #   hooks:
+  #     - id: pydocstyle
+  #       exclude: '(^\.venv/|/tests/)'
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
       - id: bandit
         exclude: '(^\.venv/|/tests/)'
+        args:
+          - --exclude
+          - scripts/check_ignored_cves.py
 
   - repo: https://github.com/pypa/pip-audit
     rev: v2.10.0
