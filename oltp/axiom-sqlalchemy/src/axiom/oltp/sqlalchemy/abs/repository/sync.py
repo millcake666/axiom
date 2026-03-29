@@ -10,7 +10,6 @@ from typing import Any
 from axiom.core.exceptions import ValidationError
 from axiom.oltp.sqlalchemy.base.filter.schema import FilterParam, FilterRequest
 from axiom.oltp.sqlalchemy.base.filter.type import QueryOperator, SortTypeEnum
-
 from sqlalchemy import inspect
 from sqlalchemy.orm import selectinload
 

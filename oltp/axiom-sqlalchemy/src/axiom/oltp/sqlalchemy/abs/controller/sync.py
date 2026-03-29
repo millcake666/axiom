@@ -7,12 +7,13 @@ from collections.abc import Callable, Sequence
 from typing import Any
 from uuid import UUID
 
+from pydantic import BaseModel
+
 from axiom.core.exceptions import NotFoundError, UnprocessableError
 from axiom.oltp.sqlalchemy.abs.repository.sync import SyncBaseRepository
 from axiom.oltp.sqlalchemy.base.filter.schema import FilterParam, FilterRequest
 from axiom.oltp.sqlalchemy.base.filter.type import QueryOperator, SortTypeEnum
 from axiom.oltp.sqlalchemy.base.schema.response import CountResponse, PaginationResponse
-from pydantic import BaseModel
 
 
 class SyncBaseController[ModelType](ABC):
@@ -123,7 +124,7 @@ class SyncBaseController[ModelType](ABC):
         db_obj = self.repository.get_by(field="id", value=uuid, unique=True)
         if not db_obj:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return db_obj  # type: ignore[return-value]
 
@@ -189,7 +190,8 @@ class SyncBaseController[ModelType](ABC):
         unique: bool = False,
     ) -> ModelType | None | list[ModelType]:
         result = self.repository.delete_by_filters(
-            filter_request=filter_request, unique=unique
+            filter_request=filter_request,
+            unique=unique,
         )
         if unique and result is None:
             raise NotFoundError(
@@ -231,7 +233,10 @@ class SyncBaseController[ModelType](ABC):
         unique: bool = False,
     ) -> ModelType | None | list[ModelType]:
         result = self.repository.delete_by(
-            field=field, value=value, operator=operator, unique=unique
+            field=field,
+            value=value,
+            operator=operator,
+            unique=unique,
         )
         if unique and result is None:
             raise NotFoundError(
@@ -245,7 +250,10 @@ class SyncBaseController[ModelType](ABC):
             if f in self.exclude_fields:
                 raise UnprocessableError(f"Field {f} is prohibited for updating")
         result = self.repository.update_by(
-            field="id", value=id_, attributes=attributes, unique=True
+            field="id",
+            value=id_,
+            attributes=attributes,
+            unique=True,
         )
         if result is None:
             raise NotFoundError(f"{self.model_class.__name__} with id: {id_} not found")
@@ -257,11 +265,14 @@ class SyncBaseController[ModelType](ABC):
             if f in self.exclude_fields:
                 raise UnprocessableError(f"Field {f} is prohibited for updating")
         result = self.repository.update_by(
-            field="id", value=uuid, attributes=attributes, unique=True
+            field="id",
+            value=uuid,
+            attributes=attributes,
+            unique=True,
         )
         if result is None:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return result  # type: ignore[return-value]
 
@@ -277,7 +288,7 @@ class SyncBaseController[ModelType](ABC):
         result = self.repository.delete_by(field="id", value=uuid, unique=True)
         if result is None:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return result  # type: ignore[return-value]
 

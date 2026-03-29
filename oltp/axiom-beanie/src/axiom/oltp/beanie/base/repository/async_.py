@@ -483,10 +483,7 @@ class AsyncBeanieRepository[
             ValidationError: If the field path is invalid.
         """
         from axiom.core.exceptions import ValidationError
-        from axiom.oltp.beanie.base.utils import (
-            get_field_type,
-            get_linked_document_type,
-        )
+        from axiom.oltp.beanie.base.utils import get_field_type, get_linked_document_type
 
         if "." not in field:
             return self.model_class, field

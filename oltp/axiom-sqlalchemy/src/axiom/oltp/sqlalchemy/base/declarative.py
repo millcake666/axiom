@@ -3,7 +3,6 @@
 import re
 
 from axiom.oltp.sqlalchemy.base.meta import meta
-
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 

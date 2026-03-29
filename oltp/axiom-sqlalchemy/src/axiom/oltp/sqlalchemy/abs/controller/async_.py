@@ -7,12 +7,13 @@ from collections.abc import Callable, Sequence
 from typing import Any
 from uuid import UUID
 
+from pydantic import BaseModel
+
 from axiom.core.exceptions import NotFoundError, UnprocessableError
 from axiom.oltp.sqlalchemy.abs.repository.async_ import AsyncBaseRepository
 from axiom.oltp.sqlalchemy.base.filter.schema import FilterParam, FilterRequest
 from axiom.oltp.sqlalchemy.base.filter.type import QueryOperator, SortTypeEnum
 from axiom.oltp.sqlalchemy.base.schema.response import CountResponse, PaginationResponse
-from pydantic import BaseModel
 
 
 class AsyncBaseController[ModelType](ABC):
@@ -112,7 +113,7 @@ class AsyncBaseController[ModelType](ABC):
 
     async def count(self, filter_request: FilterRequest | None = None) -> CountResponse:
         return CountResponse(
-            count=await self.repository.count(filter_request=filter_request)
+            count=await self.repository.count(filter_request=filter_request),
         )
 
     async def get_by_id(self, id_: int) -> ModelType:
@@ -125,7 +126,7 @@ class AsyncBaseController[ModelType](ABC):
         db_obj = await self.repository.get_by(field="id", value=uuid, unique=True)
         if not db_obj:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return db_obj  # type: ignore[return-value]
 
@@ -143,7 +144,9 @@ class AsyncBaseController[ModelType](ABC):
             sort_type=sort_type,
         )
         return await self.make_pagination_response(
-            data=response, skip=skip, limit=limit
+            data=response,
+            skip=skip,
+            limit=limit,
         )
 
     @transactional
@@ -152,7 +155,8 @@ class AsyncBaseController[ModelType](ABC):
 
     @transactional
     async def create_many(
-        self, attributes_list: list[dict[str, Any]]
+        self,
+        attributes_list: list[dict[str, Any]],
     ) -> list[ModelType]:
         return await self.repository.create_many(attributes_list)
 
@@ -255,7 +259,10 @@ class AsyncBaseController[ModelType](ABC):
             if f in self.exclude_fields:
                 raise UnprocessableError(f"Field {f} is prohibited for updating")
         result = await self.repository.update_by(
-            field="id", value=id_, attributes=attributes, unique=True
+            field="id",
+            value=id_,
+            attributes=attributes,
+            unique=True,
         )
         if result is None:
             raise NotFoundError(f"{self.model_class.__name__} with id: {id_} not found")
@@ -267,11 +274,14 @@ class AsyncBaseController[ModelType](ABC):
             if f in self.exclude_fields:
                 raise UnprocessableError(f"Field {f} is prohibited for updating")
         result = await self.repository.update_by(
-            field="id", value=uuid, attributes=attributes, unique=True
+            field="id",
+            value=uuid,
+            attributes=attributes,
+            unique=True,
         )
         if result is None:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return result  # type: ignore[return-value]
 
@@ -287,7 +297,7 @@ class AsyncBaseController[ModelType](ABC):
         result = await self.repository.delete_by(field="id", value=uuid, unique=True)
         if result is None:
             raise NotFoundError(
-                f"{self.model_class.__name__} with uuid: {uuid} not found"
+                f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return result  # type: ignore[return-value]
 

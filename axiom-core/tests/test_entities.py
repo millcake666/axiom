@@ -4,12 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from axiom.core.entities import (
-    BaseDomainDC,
-    BaseRequestSchema,
-    BaseSchema,
-    PaginatedResponse,
-)
+from axiom.core.entities import BaseDomainDC, BaseRequestSchema, BaseSchema, PaginatedResponse
 
 # --- BaseSchema ---
 

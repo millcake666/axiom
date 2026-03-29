@@ -6,7 +6,6 @@ from typing import Any
 
 from axiom.oltp.sqlalchemy.base.declarative import Base
 from axiom.oltp.sqlalchemy.base.repository.async_ import AsyncSQLAlchemyRepository
-
 from sqlalchemy import Select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession

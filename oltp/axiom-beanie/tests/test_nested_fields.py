@@ -7,10 +7,7 @@ from axiom.core.exceptions import ValidationError
 from axiom.core.filter import FilterParam, FilterRequest, QueryOperator
 from axiom.oltp.beanie.base.controller.async_ import AsyncBeanieController
 from axiom.oltp.beanie.base.repository.async_ import AsyncBeanieRepository
-from axiom.oltp.beanie.base.utils import (
-    resolve_nested_field_type,
-    validate_nested_field,
-)
+from axiom.oltp.beanie.base.utils import resolve_nested_field_type, validate_nested_field
 from tests.fixtures.models import CommentDocument, PostDocument, UserDocument
 
 

@@ -7,28 +7,9 @@ from typing import Any, Literal
 from axiom.core.exceptions import BadRequestError, NotFoundError, ValidationError
 from axiom.oltp.sqlalchemy.abs.repository.async_ import AsyncBaseRepository
 from axiom.oltp.sqlalchemy.base.declarative import Base
-from axiom.oltp.sqlalchemy.base.filter.schema import (
-    FilterNode,
-    FilterParam,
-    FilterRequest,
-)
-from axiom.oltp.sqlalchemy.base.filter.type import (
-    FilterType,
-    QueryOperator,
-    SortTypeEnum,
-)
-
-from sqlalchemy import (
-    Select,
-    UniqueConstraint,
-    and_,
-    delete,
-    func,
-    inspect,
-    not_,
-    or_,
-    update,
-)
+from axiom.oltp.sqlalchemy.base.filter.schema import FilterNode, FilterParam, FilterRequest
+from axiom.oltp.sqlalchemy.base.filter.type import FilterType, QueryOperator, SortTypeEnum
+from sqlalchemy import Select, UniqueConstraint, and_, delete, func, inspect, not_, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.expression import select
@@ -50,7 +31,8 @@ class AsyncSQLAlchemyRepository[
         return created_model
 
     async def create_many(
-        self, attributes_list: list[dict[str, Any]]
+        self,
+        attributes_list: list[dict[str, Any]],
     ) -> list[ModelType]:
         if not attributes_list:
             return []
@@ -204,13 +186,13 @@ class AsyncSQLAlchemyRepository[
             case QueryOperator.IN:
                 if not isinstance(value, list | tuple | set):
                     raise BadRequestError(
-                        f"Value for IN must be a list, tuple or set, got {type(value).__name__}"
+                        f"Value for IN must be a list, tuple or set, got {type(value).__name__}",
                     )
                 return left.in_(value)
             case QueryOperator.NOT_IN:
                 if not isinstance(value, list | tuple | set):
                     raise BadRequestError(
-                        f"Value for NOT_IN must be a list, tuple or set, got {type(value).__name__}"
+                        f"Value for NOT_IN must be a list, tuple or set, got {type(value).__name__}",
                     )
                 return not_(left.in_(value))
             case QueryOperator.EQUALS:
@@ -228,37 +210,37 @@ class AsyncSQLAlchemyRepository[
             case QueryOperator.STARTS_WITH:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for STARTS_WITH must be a string, got {type(value).__name__}"
+                        f"Value for STARTS_WITH must be a string, got {type(value).__name__}",
                     )
                 return left.startswith(value)
             case QueryOperator.NOT_START_WITH:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for NOT_START_WITH must be a string, got {type(value).__name__}"
+                        f"Value for NOT_START_WITH must be a string, got {type(value).__name__}",
                     )
                 return not_(left.startswith(value))
             case QueryOperator.ENDS_WITH:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for ENDS_WITH must be a string, got {type(value).__name__}"
+                        f"Value for ENDS_WITH must be a string, got {type(value).__name__}",
                     )
                 return left.endswith(value)
             case QueryOperator.NOT_END_WITH:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for NOT_END_WITH must be a string, got {type(value).__name__}"
+                        f"Value for NOT_END_WITH must be a string, got {type(value).__name__}",
                     )
                 return not_(left.endswith(value))
             case QueryOperator.CONTAINS:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for CONTAINS must be a string, got {type(value).__name__}"
+                        f"Value for CONTAINS must be a string, got {type(value).__name__}",
                     )
                 return left.contains(value)
             case QueryOperator.NOT_CONTAIN:
                 if not isinstance(value, str):
                     raise BadRequestError(
-                        f"Value for NOT_CONTAIN must be a string, got {type(value).__name__}"
+                        f"Value for NOT_CONTAIN must be a string, got {type(value).__name__}",
                     )
                 return not_(left.contains(value))
             case _:
@@ -335,7 +317,8 @@ class AsyncSQLAlchemyRepository[
             for rel_name in parts[:-1]:
                 if hasattr(current_model, rel_name):
                     current_model = getattr(
-                        current_model, rel_name
+                        current_model,
+                        rel_name,
                     ).property.mapper.class_
                 else:
                     raise ValidationError(
@@ -373,9 +356,7 @@ class AsyncSQLAlchemyRepository[
                 .returning(self.model_class)
             )
         else:
-            stmt = (
-                delete(self.model_class).where(*conditions).returning(self.model_class)
-            )
+            stmt = delete(self.model_class).where(*conditions).returning(self.model_class)
         select_stmt = self._query().from_statement(stmt)
         if unique:
             return await self._one_or_none(select_stmt)

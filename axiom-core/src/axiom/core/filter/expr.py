@@ -6,8 +6,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Annotated, Any, Literal
 
-from axiom.oltp.sqlalchemy.base.filter.type import FilterType, QueryOperator
 from pydantic import BaseModel, Field
+
+from axiom.oltp.sqlalchemy.base.filter.type import FilterType, QueryOperator
 
 
 class FilterExpr(BaseModel, ABC):
@@ -38,7 +39,9 @@ class FilterParam(FilterExpr):
         return [self]
 
     def __repr__(self) -> str:
-        return f"FilterParam(field={self.field!r}, value={self.value!r}, operator={self.operator!r})"
+        return (
+            f"FilterParam(field={self.field!r}, value={self.value!r}, operator={self.operator!r})"
+        )
 
 
 class FilterGroup(FilterExpr):

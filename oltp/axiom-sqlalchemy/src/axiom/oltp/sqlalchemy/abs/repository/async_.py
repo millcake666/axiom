@@ -10,7 +10,6 @@ from typing import Any
 from axiom.core.exceptions import ValidationError
 from axiom.oltp.sqlalchemy.base.filter.schema import FilterParam, FilterRequest
 from axiom.oltp.sqlalchemy.base.filter.type import QueryOperator, SortTypeEnum
-
 from sqlalchemy import inspect
 from sqlalchemy.orm import selectinload
 
@@ -28,7 +27,8 @@ class AsyncBaseRepository[ModelType, SessionType, QueryType](ABC):
 
     @abstractmethod
     async def create_many(
-        self, attributes_list: list[dict[str, Any]]
+        self,
+        attributes_list: list[dict[str, Any]],
     ) -> list[ModelType]:
         raise NotImplementedError
 
