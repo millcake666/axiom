@@ -7,13 +7,21 @@ requires-python = ">=3.13"
 dependencies = [
     "axiom-core",
     "aiobotocore>=2.15.0,<3",
+    "boto3>=1.35.0,<2",
+    "aiofiles>=24.0.0,<25",
 ]
+
+[project.optional-dependencies]
+s3 = ["aiobotocore>=2.15.0,<3", "boto3>=1.35.0,<2"]
+local = ["aiofiles>=24.0.0,<25"]
+all = ["aiobotocore>=2.15.0,<3", "boto3>=1.35.0,<2", "aiofiles>=24.0.0,<25"]
 
 [dependency-groups]
 dev = [
     "mypy>=1.16.0,<2",
     "pytest>=8.0.0,<9",
     "pytest-asyncio>=0.24.0,<1",
+    "pytest-cov>=6.0.0,<7",
     "ruff>=0.11.13,<1",
 ]
 
@@ -26,3 +34,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/axiom"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["axiom.objectstore"]

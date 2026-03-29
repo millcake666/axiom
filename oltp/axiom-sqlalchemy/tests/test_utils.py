@@ -1,16 +1,9 @@
 # ruff: noqa: D100, D101, D102, D103, E501
 """Unit tests for utilities: to_snake, AsDictMixin, filter schema, response schemas."""
 
-from axiom.core.filter import (
-    FilterGroup,
-    FilterParam,
-    FilterRequest,
-    FilterType,
-    QueryOperator,
-    SortParams,
-    SortTypeEnum,
-)
-from axiom.core.schema import CountResponse, PaginationResponse
+from axiom.core.filter.expr import FilterGroup, FilterParam, FilterRequest
+from axiom.core.filter.type import FilterType, QueryOperator, SortParams, SortTypeEnum
+from axiom.core.schema.response import CountResponse, PaginationResponse
 from axiom.oltp.sqlalchemy.base.declarative import to_snake
 from tests.fixtures.models import UserModel
 

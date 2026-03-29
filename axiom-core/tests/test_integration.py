@@ -2,29 +2,20 @@
 
 import json
 
-from axiom.core import (
+from axiom.core.context import (
     REQUEST_CONTEXT,
-    AppMixin,
-    BaseAppSettings,
-    BaseDomainDC,
-    BaseError,
-    BaseSchema,
-    DebugMixin,
-    LoggerSettings,
-    NotFoundError,
-    PaginatedResponse,
     RequestContext,
     TypedContextVar,
-    ValidationError,
-    configure_logger,
-    get_logger,
-    make_env_prefix,
     set_request_context,
 )
+from axiom.core.entities import BaseDomainDC, BaseSchema, PaginatedResponse
+from axiom.core.exceptions import BaseError, NotFoundError, ValidationError
+from axiom.core.logger import LoggerSettings, configure_logger, get_logger
+from axiom.core.settings import AppMixin, BaseAppSettings, DebugMixin, make_env_prefix
 
 
 def test_all_imports():
-    """All public API symbols are importable from axiom.core."""
+    """All public API symbols are importable from axiom.core submodules."""
     assert configure_logger is not None
     assert get_logger is not None
     assert LoggerSettings is not None

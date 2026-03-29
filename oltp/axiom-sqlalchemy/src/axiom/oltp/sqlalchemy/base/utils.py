@@ -49,8 +49,10 @@ def get_nested_field_type(model: type, field_path: str) -> type:
     Raises:
         ValueError: If the field path is invalid.
     """
+    from sqlalchemy.orm import Mapper
+
     final_model, column_name = resolve_nested_relation(model, field_path)
-    mapper = inspect(final_model)
+    mapper: Mapper[type] = inspect(final_model)  # type: ignore[assignment]
 
     if column_name not in {c.key for c in mapper.columns}:
         raise ValueError(f"{final_model.__name__} has no column '{column_name}'")

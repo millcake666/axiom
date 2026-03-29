@@ -2,13 +2,12 @@
 
 import pytest
 
-from axiom.core.exceptions import (
+from axiom.core.exceptions.base import BaseError, ErrorDetail
+from axiom.core.exceptions.http import (
     AuthenticationError,
     AuthorizationError,
     BadRequestError,
-    BaseError,
     ConflictError,
-    ErrorDetail,
     InternalError,
     NotFoundError,
     UnprocessableError,

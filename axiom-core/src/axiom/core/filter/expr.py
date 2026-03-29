@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""axiom.oltp.sqlalchemy.base.filter.schema — Filter schema definitions."""
+"""axiom.core.filter.expr — Filter expression types."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
-from axiom.oltp.sqlalchemy.base.filter.type import FilterType, QueryOperator
+from axiom.core.filter.type import FilterType, QueryOperator
 
 
 class FilterExpr(BaseModel, ABC):

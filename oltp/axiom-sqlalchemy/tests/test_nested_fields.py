@@ -3,8 +3,9 @@
 
 import pytest
 
-from axiom.core.exceptions import ValidationError
-from axiom.core.filter import FilterParam, FilterRequest, QueryOperator
+from axiom.core.exceptions.http import ValidationError
+from axiom.core.filter.expr import FilterParam, FilterRequest
+from axiom.core.filter.type import QueryOperator
 from axiom.oltp.sqlalchemy.base.controller.async_ import AsyncSQLAlchemyController
 from axiom.oltp.sqlalchemy.base.repository.async_ import AsyncSQLAlchemyRepository
 from axiom.oltp.sqlalchemy.base.utils import (

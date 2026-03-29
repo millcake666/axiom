@@ -52,4 +52,4 @@ class AsyncPostgresRepository[
         ).returning(self.model_class)
 
         select_stmt = self._query().from_statement(stmt)
-        return await self._one_or_none(select_stmt)  # type: ignore[return-value]
+        return await self._one_or_none(select_stmt)  # type: ignore[return-value, arg-type]

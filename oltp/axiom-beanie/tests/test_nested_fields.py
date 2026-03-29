@@ -3,8 +3,9 @@
 
 import pytest
 
-from axiom.core.exceptions import ValidationError
-from axiom.core.filter import FilterParam, FilterRequest, QueryOperator
+from axiom.core.exceptions.http import ValidationError
+from axiom.core.filter.expr import FilterParam, FilterRequest
+from axiom.core.filter.type import QueryOperator
 from axiom.oltp.beanie.base.controller.async_ import AsyncBeanieController
 from axiom.oltp.beanie.base.repository.async_ import AsyncBeanieRepository
 from axiom.oltp.beanie.base.utils import resolve_nested_field_type, validate_nested_field

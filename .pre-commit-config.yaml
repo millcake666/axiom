@@ -58,11 +58,8 @@ repos:
 
       - id: mypy
         name: Validate types with MyPy
-        entry: uv run mypy
+        entry: python scripts/check_types.py
         language: system
         types: [ python ]
         pass_filenames: false
-        args:
-          - .
-          - --install-types
-          - --non-interactive
+        require_serial: true

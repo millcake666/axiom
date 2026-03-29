@@ -47,7 +47,7 @@ format: ## Run code formatter
 
 .PHONY: check-types
 check-types: ## Check types
-	uv run mypy axiom-*/src oltp/axiom-*/src olap/axiom-*/src --install-types
+	uv run python scripts/check_types.py
 
 .PHONY: check-pylint
 check-pylint: ## Run pylint on src and tests

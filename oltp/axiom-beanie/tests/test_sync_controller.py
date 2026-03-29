@@ -4,9 +4,10 @@
 import pytest
 from pydantic import BaseModel
 
-from axiom.core.exceptions import NotFoundError, UnprocessableError
-from axiom.core.filter import FilterParam, FilterRequest, QueryOperator
-from axiom.core.schema import CountResponse, PaginationResponse
+from axiom.core.exceptions.http import NotFoundError, UnprocessableError
+from axiom.core.filter.expr import FilterParam, FilterRequest
+from axiom.core.filter.type import QueryOperator
+from axiom.core.schema.response import CountResponse, PaginationResponse
 from axiom.oltp.beanie.base.controller.sync import SyncMongoController
 from axiom.oltp.beanie.base.repository.sync import SyncMongoRepository
 from tests.fixtures.sync_models import SyncUserModel

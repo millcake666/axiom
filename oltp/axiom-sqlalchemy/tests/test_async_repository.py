@@ -3,15 +3,9 @@
 
 import pytest
 
-from axiom.core.exceptions import BadRequestError, ValidationError
-from axiom.core.filter import (
-    FilterGroup,
-    FilterParam,
-    FilterRequest,
-    FilterType,
-    QueryOperator,
-    SortTypeEnum,
-)
+from axiom.core.exceptions.http import BadRequestError, ValidationError
+from axiom.core.filter.expr import FilterGroup, FilterParam, FilterRequest
+from axiom.core.filter.type import FilterType, QueryOperator, SortTypeEnum
 from axiom.oltp.sqlalchemy.sqlite.repository.async_ import AsyncSQLiteRepository
 from tests.fixtures.models import PostModel, TagModel, UserModel
 

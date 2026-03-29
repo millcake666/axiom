@@ -1,7 +1,7 @@
 # mypy: disable-error-code="misc"
 """axiom.oltp.beanie.base.exception — Exceptions for the axiom.oltp.beanie.base package."""
 
-from axiom.core.exceptions import BaseError
+from axiom.core.exceptions.base import BaseError
 
 
 class BeanieOperationError(BaseError):

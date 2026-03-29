@@ -11,39 +11,32 @@ class BaseError(Exception):
     Subclasses should override code and status_code as class attributes.
     """
 
-    code: str
-    status_code: int
+    code: str = "internal_error"
+    status_code: int = 500
     message: str
     details: dict[str, Any]
 
     def __init__(
         self,
         message: str,
-        code: str = "internal_error",
+        code: str | None = None,
         details: dict[str, Any] | None = None,
-        status_code: int = 500,
+        status_code: int | None = None,
     ) -> None:
         """Initialize BaseError.
 
         Args:
             message: Human-readable error description.
-            code: Machine-readable error code.
+            code: Machine-readable error code. Defaults to class attribute.
             details: Optional mapping of additional context about the error.
-            status_code: HTTP status code.
+            status_code: HTTP status code. Defaults to class attribute.
         """
         super().__init__(message)
         self.message = message
-        self.code = code
-        self.status_code = status_code
+        # Use instance-provided value if given, otherwise use class attribute
+        self.code = code if code is not None else self.__class__.code
+        self.status_code = status_code if status_code is not None else self.__class__.status_code
         self.details = details or {}
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        """Initialize subclasses with default code and status_code."""
-        super().__init_subclass__(**kwargs)
-        if not hasattr(cls, "code"):
-            cls.code = "internal_error"
-        if not hasattr(cls, "status_code"):
-            cls.status_code = 500
 
 
 class ErrorDetail(BaseModel):

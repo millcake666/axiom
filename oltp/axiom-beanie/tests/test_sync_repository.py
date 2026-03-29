@@ -3,14 +3,8 @@
 
 import pytest
 
-from axiom.core.filter import (
-    FilterGroup,
-    FilterParam,
-    FilterRequest,
-    FilterType,
-    QueryOperator,
-    SortTypeEnum,
-)
+from axiom.core.filter.expr import FilterGroup, FilterParam, FilterRequest
+from axiom.core.filter.type import FilterType, QueryOperator, SortTypeEnum
 from axiom.oltp.beanie.base.repository.sync import SyncMongoRepository
 from tests.fixtures.sync_models import SyncUserModel
 

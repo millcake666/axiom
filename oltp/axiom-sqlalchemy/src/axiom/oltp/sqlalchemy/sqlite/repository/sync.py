@@ -52,4 +52,4 @@ class SyncSQLiteRepository[
         ).returning(self.model_class)
 
         select_stmt = self._query().from_statement(stmt)
-        return self._one_or_none(select_stmt)  # type: ignore[return-value]
+        return self._one_or_none(select_stmt)  # type: ignore[return-value, arg-type]

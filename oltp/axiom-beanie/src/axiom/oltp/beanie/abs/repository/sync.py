@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any
 
-from axiom.core.filter import FilterParam, FilterRequest, QueryOperator, SortTypeEnum
+from axiom.core.filter.expr import FilterParam, FilterRequest
+from axiom.core.filter.type import QueryOperator, SortTypeEnum
 
 
 class SyncBaseRepository[ModelType, SessionType, QueryType](ABC):

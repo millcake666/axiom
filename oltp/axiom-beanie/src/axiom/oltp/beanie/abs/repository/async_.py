@@ -5,10 +5,12 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any
 
-from axiom.core.filter import FilterParam, FilterRequest, QueryOperator, SortTypeEnum
+from axiom.core.filter.expr import FilterParam, FilterRequest
+from axiom.core.filter.type import QueryOperator, SortTypeEnum
+from beanie import Document
 
 
-class AsyncBaseRepository[ModelType, SessionType, QueryType](ABC):
+class AsyncBaseRepository[ModelType: Document, SessionType, QueryType](ABC):
     """Abstract base class for async Beanie data repositories.
 
     Provides the full CRUD and query contract that concrete repositories must
