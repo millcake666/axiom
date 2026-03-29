@@ -1,4 +1,3 @@
-# ruff: noqa: D100, D101, D102, D103
 # mypy: disable-error-code="attr-defined"
 """axiom.oltp.beanie.base.utils — Utilities for nested field operations in Beanie."""
 
@@ -48,6 +47,7 @@ def resolve_nested_field_type(model: type[Document], field_path: str) -> type:
 
     Raises:
         ValueError: If the field path is invalid.
+
     """
     if "." not in field_path:
         return get_field_type(model, field_path)
@@ -82,6 +82,7 @@ def get_field_type(model: type[Document], field_name: str) -> type:
 
     Raises:
         ValueError: If the field does not exist.
+
     """
     if not hasattr(model, "model_fields") or field_name not in model.model_fields:
         raise ValueError(f"{model.__name__} has no field '{field_name}'")
@@ -109,6 +110,7 @@ def validate_nested_field(
 
     Raises:
         ValueError: If the field path is invalid or type mismatch.
+
     """
     from enum import Enum
 
@@ -168,6 +170,7 @@ def get_nested_value(obj: Any, field_path: str) -> Any:
 
     Raises:
         AttributeError: If any attribute in the path does not exist.
+
     """
     parts = field_path.split(".")
     current = obj
@@ -193,6 +196,7 @@ def set_nested_value(obj: Any, field_path: str, value: Any) -> None:
 
     Raises:
         AttributeError: If any attribute in the path does not exist.
+
     """
     parts = field_path.split(".")
     current = obj

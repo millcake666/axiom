@@ -1,4 +1,4 @@
-# ruff: noqa: D100, D101, D102, D103, D105, D107, E501
+# ruff: noqa: E501
 """axiom.oltp.sqlalchemy.base.filter.schema — Filter schema definitions."""
 
 from __future__ import annotations
@@ -18,12 +18,14 @@ class FilterExpr(BaseModel, ABC):
 
     @abstractmethod
     def extract_filter_params(self) -> list[FilterParam]:
-        pass
+        """Extract all filter parameters from the node."""
 
     def __and__(self, other: FilterParam | FilterGroup) -> FilterGroup:
+        """Combine with another filter using AND operator."""
         return FilterGroup(type=FilterType.AND, items=[self, other])  # type: ignore[list-item]
 
     def __or__(self, other: FilterParam | FilterGroup) -> FilterGroup:
+        """Combine with another filter using OR operator."""
         return FilterGroup(type=FilterType.OR, items=[self, other])  # type: ignore[list-item]
 
 
@@ -36,9 +38,11 @@ class FilterParam(FilterExpr):
     operator: QueryOperator = Field(..., examples=[QueryOperator.EQUALS])
 
     def extract_filter_params(self) -> list[FilterParam]:
+        """Return this filter parameter as a single-element list."""
         return [self]
 
     def __repr__(self) -> str:
+        """Return string representation of the filter parameter."""
         return (
             f"FilterParam(field={self.field!r}, value={self.value!r}, operator={self.operator!r})"
         )
@@ -52,12 +56,14 @@ class FilterGroup(FilterExpr):
     items: list[FilterNode] = Field(..., examples=[[]])
 
     def extract_filter_params(self) -> list[FilterParam]:
+        """Recursively extract all filter parameters from child nodes."""
         params = []
         for item in self.items:
             params.extend(item.extract_filter_params())
         return params
 
     def __repr__(self) -> str:
+        """Return string representation of the filter group."""
         items_repr = ", ".join(repr(item) for item in self.items)
         return f"FilterGroup(type={self.type!r}, items=[{items_repr}])"
 
@@ -71,7 +77,9 @@ class FilterRequest(BaseModel):
     chain: FilterNode = Field(..., description="Root node of the filter tree")
 
     def extract_filter_params(self) -> list[FilterParam]:
+        """Extract all filter parameters from the filter chain."""
         return self.chain.extract_filter_params()
 
     def __repr__(self) -> str:
+        """Return string representation of the filter request."""
         return f"FilterRequest(chain={self.chain!r})"
