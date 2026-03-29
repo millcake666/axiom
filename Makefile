@@ -47,7 +47,20 @@ format: ## Run code formatter
 
 .PHONY: check-types
 check-types: ## Check types
-	uv run mypy . --install-types
+	uv run mypy axiom-*/src oltp/axiom-*/src olap/axiom-*/src --install-types
+
+.PHONY: check-pylint
+check-pylint: ## Run pylint on src and tests
+	uv run pylint axiom-*/src oltp/axiom-*/src olap/axiom-*/src
+	uv run pylint axiom-*/tests oltp/axiom-*/tests olap/axiom-*/tests --disable=redefined-outer-name,too-many-public-methods
+
+.PHONY: check-vulture
+check-vulture: ## Find dead code with vulture
+	uv run vulture axiom-*/src axiom-*/tests oltp/axiom-*/src oltp/axiom-*/tests olap/axiom-*/src olap/axiom-*/tests --min-confidence 80
+
+.PHONY: check-jscpd
+check-jscpd: ## Check code duplication with jscpd
+	npx -y jscpd axiom-*/src axiom-*/tests oltp/axiom-*/src oltp/axiom-*/tests olap/axiom-*/src olap/axiom-*/tests
 
 .PHONE: setup-precommit
 setup-precommit: ## Install all hooks

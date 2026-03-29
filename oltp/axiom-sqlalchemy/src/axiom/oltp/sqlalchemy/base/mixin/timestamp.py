@@ -1,4 +1,3 @@
-# ruff: noqa: D100, D101, D102
 # mypy: disable-error-code="no-untyped-def,arg-type"
 """axiom.oltp.sqlalchemy.base.mixin.timestamp — TimestampMixin for SQLAlchemy models."""
 
@@ -10,8 +9,15 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class TimestampMixin:
+    """Mixin that adds ``created_at`` and ``updated_at`` timestamp columns."""
+
     @declared_attr
     def created_at(cls) -> Mapped[datetime]:
+        """Timezone-aware timestamp set once on insert.
+
+        Returns:
+            A ``Mapped[datetime]`` column with server and Python defaults.
+        """
         return mapped_column(
             DateTime(timezone=True),
             default=func.now(),
@@ -21,6 +27,11 @@ class TimestampMixin:
 
     @declared_attr
     def updated_at(cls) -> Mapped[datetime]:
+        """Timezone-aware timestamp updated on every write.
+
+        Returns:
+            A ``Mapped[datetime]`` column with server and Python defaults.
+        """
         return mapped_column(
             DateTime(timezone=True),
             default=func.now(),

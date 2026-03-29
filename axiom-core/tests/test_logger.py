@@ -97,10 +97,7 @@ def test_custom_serializer(capsys):
     import json as json_mod
 
     def my_serializer(record):
-        return (
-            json_mod.dumps({"msg": record["message"], "lvl": record["level"].name})
-            + "\n"
-        )
+        return json_mod.dumps({"msg": record["message"], "lvl": record["level"].name}) + "\n"
 
     settings = LoggerSettings(LOG_FORMAT="json", LOG_OUTPUT="stderr")
     configure_logger(settings, serializer=my_serializer)

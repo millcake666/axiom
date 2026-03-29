@@ -1,0 +1,24 @@
+{
+  "minLines": 12,
+  "minTokens": 70,
+  "threshold": 35,
+  "reporters": [
+    "console"
+  ],
+  "mode": "mild",
+  "format": [
+    "python"
+  ],
+  "gitignore": true,
+  "ignore": [
+    "**/.venv/**",
+    "**/__pycache__/**",
+    "**/migration/**"
+  ],
+  "output": ".jscpd-report",
+  "absolute": true,
+  "noSymlinks": true,
+  "blame": false,
+  "ignoreCase": true,
+  "skipComments": true
+}

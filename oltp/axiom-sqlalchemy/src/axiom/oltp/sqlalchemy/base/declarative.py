@@ -1,4 +1,3 @@
-# ruff: noqa: D100, D101, D102, D103, D105, D107
 """axiom.oltp.sqlalchemy.base.declarative — Declarative base class."""
 
 import re
@@ -30,4 +29,9 @@ class Base(DeclarativeBase):
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
+        """Derive the table name by converting the class name to snake_case.
+
+        Returns:
+            The snake_case table name for this model.
+        """
         return to_snake(cls.__name__)

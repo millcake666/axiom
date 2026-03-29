@@ -1,4 +1,4 @@
-# ruff: noqa: W505, D100, D101, D102, D103, D105, D107
+# ruff: noqa: W505
 # mypy: disable-error-code="valid-type,type-arg"
 """axiom.oltp.sqlalchemy.base.controller.sync — Sync SQLAlchemy controller."""
 
@@ -18,6 +18,22 @@ class SyncSQLAlchemyController[ModelType: Base](SyncBaseController):
         *args: Any,
         **kwargs: Any,
     ) -> Any:
+        """Execute *function* inside a managed sync transaction.
+
+        Commits on success and rolls back on any exception.  Refreshes the
+        returned instance(s) after create or update operations.
+
+        Args:
+            function: The sync repository-calling callable to wrap.
+            *args: Positional arguments forwarded to *function*.
+            **kwargs: Keyword arguments forwarded to *function*.
+
+        Returns:
+            Whatever *function* returns.
+
+        Raises:
+            Exception: Re-raises any exception after rolling back.
+        """
         try:
             result = function(self, *args, **kwargs)
             self.repository.session.commit()

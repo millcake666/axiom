@@ -6,14 +6,26 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "axiom-core",
+    "beanie>=2.1.0",
+    "motor>=3.0",
+    "pymongo>=4.0",
 ]
 
 [dependency-groups]
 dev = [
     "mypy>=1.16.0,<2",
+    "mongomock>=4.0",
+    "mongomock-motor>=0.0.21",
     "pytest>=8.0.0,<9",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=4.0",
     "ruff>=0.11.13,<1",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.uv.sources]
 axiom-core = { workspace = true }

@@ -1,4 +1,3 @@
-# ruff: noqa: D100, D101, D102, D103, D105, D107
 # mypy: disable-error-code="type-arg,no-untyped-def"
 """axiom.oltp.sqlalchemy.postgres.session — RoutingSession for read/write splitting."""
 
@@ -22,6 +21,13 @@ class RoutingSession(Session):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        """Initialise the routing session.
+
+        Args:
+            engines: Dict with ``"writer"`` and ``"reader"`` ``AsyncEngine`` values.
+            *args: Positional arguments forwarded to ``Session.__init__``.
+            **kwargs: Keyword arguments forwarded to ``Session.__init__``.
+        """
         super().__init__(*args, **kwargs)
         self.engines = engines
 
@@ -29,8 +35,19 @@ class RoutingSession(Session):
         self,
         mapper=None,
         clause=None,
-        **kw,
+        **_kw,
     ):
+        """Return the appropriate engine based on the statement type.
+
+        Args:
+            mapper: Optional mapper hint (unused).
+            clause: The SQL clause being executed.
+            **_kw: Additional keyword arguments (ignored).
+
+        Returns:
+            The writer's sync engine for mutating statements or during flush;
+            the reader's sync engine otherwise.
+        """
         if self._flushing or isinstance(clause, Update | Delete | Insert):
             return self.engines["writer"].sync_engine
         return self.engines["reader"].sync_engine

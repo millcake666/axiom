@@ -1,0 +1,53 @@
+[MASTER]
+ignore=venv,.venv,migration,migrations,alembic
+jobs=0
+
+[MESSAGES CONTROL]
+disable=all
+enable=
+    syntax-error,
+    undefined-variable,
+    used-before-assignment,
+    dangerous-default-value,
+    broad-exception-caught,
+    broad-exception-raised,
+    raise-missing-from,
+    inconsistent-return-statements,
+    unnecessary-lambda,
+    simplifiable-if-expression,
+    simplifiable-if-statement,
+    no-else-return,
+    no-else-raise,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-return-statements,
+    too-many-nested-blocks,
+    too-many-public-methods,
+    too-many-boolean-expressions,
+    too-many-lines,
+    redefined-builtin,
+    redefined-outer-name,
+    unreachable,
+    useless-return,
+    unnecessary-pass
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=10
+max-positional-arguments=5
+max-locals=15
+max-branches=15
+max-statements=40
+max-returns=15
+max-nested-blocks=4
+max-public-methods=25
+max-attributes=12
+max-bool-expr=5
+max-module-lines=800
+
+[REPORTS]
+score=no

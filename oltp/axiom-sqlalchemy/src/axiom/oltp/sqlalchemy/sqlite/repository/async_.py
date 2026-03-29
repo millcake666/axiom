@@ -1,4 +1,4 @@
-# ruff: noqa: W505, D100, D101, D102, D103, D105, D107
+# ruff: noqa: W505
 # mypy: disable-error-code="valid-type,type-arg,attr-defined,assignment"
 """axiom.oltp.sqlalchemy.sqlite.repository.async_ — Async SQLite repository."""
 
@@ -24,6 +24,16 @@ class AsyncSQLiteRepository[
         attributes: dict[str, Any],
         update_fields: list[str] | None = None,
     ) -> ModelType:
+        """Insert or update a record using SQLite ``INSERT … ON CONFLICT DO UPDATE``.
+
+        Args:
+            attributes: Full set of field values for the record.
+            update_fields: Subset of field names to update on conflict.
+                Defaults to all non-``None`` keys in *attributes*.
+
+        Returns:
+            The inserted or updated model instance.
+        """
         for f, v in attributes.items():
             self._validate_params(field=f, value=v)
 

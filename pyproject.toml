@@ -4,9 +4,15 @@ members = ["axiom-*", "oltp/axiom-*", "olap/axiom-*"]
 [dependency-groups]
 dev = [
     "mypy>=1.16.0,<2",
+    "pip-audit>=2.9.0,<3",
     "pre-commit>=4.2.0,<5",
-    "ruff>=0.11.13,<1",
+    "pylint>=3.3.0,<4",
+    "ruff>=0.11.13,<=0.12.0",
+    "vulture>=2.15",
 ]
+
+[tool.ruff]
+line-length = 100
 
 [tool.ruff.lint]
 select = [
@@ -15,6 +21,8 @@ select = [
     "W",
     # pyflakes
     "F",
+    # pydocstyle
+    "D",
     # isort
     "I",
     # tidy imports
@@ -23,28 +31,23 @@ select = [
     "B",
     # flake8-bandit
     "S",
-    # pydocstyle
-    "D",
     # pyugrade
-    "UP"
+    "UP",
 ]
-
-[tool.ruff.lint.pycodestyle]
-max-doc-length = 120
-max-line-length = 100
+ignore = ["B008", "E721"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 120
+max-line-length = 120
+
 [tool.ruff.lint.per-file-ignores]
-"*/tests/*" = ["S101"]
+"*/tests/*" = ["S101", "D"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["axiom"]
 
 [tool.ruff.format]
 docstring-code-format = true
-
-[tool.isort]
-profile = "black"
-known_first_party = ["axiom"]
