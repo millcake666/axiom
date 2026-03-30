@@ -9,11 +9,24 @@ dependencies = [
     "axiom-redis",
 ]
 
+[project.optional-dependencies]
+orjson = ["orjson>=3.9.0"]
+dill = ["dill>=0.3.0"]
+msgpack = ["msgpack>=1.0.0"]
+pydantic = ["pydantic>=2.0.0"]
+all = ["orjson>=3.9.0", "dill>=0.3.0", "msgpack>=1.0.0", "pydantic>=2.0.0"]
+
 [dependency-groups]
 dev = [
+    "dill>=0.3.0",
+    "fakeredis[asyncio]>=2.0.0",
+    "msgpack>=1.0.0",
     "mypy>=1.16.0,<2",
+    "orjson>=3.9.0",
+    "pydantic>=2.0.0",
     "pytest>=8.0.0,<9",
     "pytest-asyncio>=0.24.0,<1",
+    "pytest-cov>=4.0.0",
     "ruff>=0.11.13,<1",
 ]
 
@@ -27,3 +40,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/axiom"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,5 +1,6 @@
 """Tests for axiom.objectstore.s3.sync — SyncS3ObjectStore."""
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,8 +13,8 @@ from axiom.objectstore.s3.exception import S3InternalError, S3ObjectNotFoundErro
 def config() -> S3Config:
     """Return an S3Config for tests."""
     return S3Config(
-        aws_access_key_id="key",
-        aws_secret_access_key="secret",
+        aws_access_key_id=os.environ.get("TEST_S3_ACCESS_KEY_ID", "key"),
+        aws_secret_access_key=os.environ.get("TEST_S3_SECRET_ACCESS_KEY", "secret"),
         endpoint_url="https://s3.example.com",
         region_name="us-east-1",
         bucket_name="test-bucket",

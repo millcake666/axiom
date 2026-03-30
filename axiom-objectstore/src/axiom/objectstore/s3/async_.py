@@ -1,8 +1,8 @@
 """axiom.objectstore.s3.async_ — Async S3 object storage client (aiobotocore)."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from secrets import token_hex
-from typing import AsyncIterator
 
 from loguru import logger
 
@@ -119,7 +119,8 @@ class AsyncS3ObjectStore(AbstractAsyncObjectStore):
         try:
             async with self._client() as client:
                 response = await client.get_object(
-                    Bucket=self._config.bucket_name, Key=name
+                    Bucket=self._config.bucket_name,
+                    Key=name,
                 )
                 return await response["Body"].read()
         except ClientError as exc:
@@ -146,7 +147,8 @@ class AsyncS3ObjectStore(AbstractAsyncObjectStore):
         try:
             async with self._client() as client:
                 await client.delete_object(
-                    Bucket=self._config.bucket_name, Key=name
+                    Bucket=self._config.bucket_name,
+                    Key=name,
                 )
         except ClientError as exc:
             raise S3InternalError(str(exc)) from exc
@@ -170,7 +172,8 @@ class AsyncS3ObjectStore(AbstractAsyncObjectStore):
         try:
             async with self._client() as client:
                 await client.head_object(
-                    Bucket=self._config.bucket_name, Key=name
+                    Bucket=self._config.bucket_name,
+                    Key=name,
                 )
             return True
         except ClientError as exc:

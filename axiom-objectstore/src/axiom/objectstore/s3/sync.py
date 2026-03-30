@@ -113,7 +113,8 @@ class SyncS3ObjectStore(AbstractSyncObjectStore):
         try:
             client = self._get_client()
             response = client.get_object(  # type: ignore[attr-defined]
-                Bucket=self._config.bucket_name, Key=name
+                Bucket=self._config.bucket_name,
+                Key=name,
             )
             return response["Body"].read()  # type: ignore[no-any-return]
         except ClientError as exc:
@@ -140,7 +141,8 @@ class SyncS3ObjectStore(AbstractSyncObjectStore):
         try:
             client = self._get_client()
             client.delete_object(  # type: ignore[attr-defined]
-                Bucket=self._config.bucket_name, Key=name
+                Bucket=self._config.bucket_name,
+                Key=name,
             )
         except ClientError as exc:
             raise S3InternalError(str(exc)) from exc
@@ -164,7 +166,8 @@ class SyncS3ObjectStore(AbstractSyncObjectStore):
         try:
             client = self._get_client()
             client.head_object(  # type: ignore[attr-defined]
-                Bucket=self._config.bucket_name, Key=name
+                Bucket=self._config.bucket_name,
+                Key=name,
             )
             return True
         except ClientError as exc:

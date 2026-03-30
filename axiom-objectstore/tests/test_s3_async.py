@@ -1,5 +1,6 @@
 """Tests for axiom.objectstore.s3.async_ — AsyncS3ObjectStore."""
 
+import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -12,8 +13,8 @@ from axiom.objectstore.s3.exception import S3InternalError, S3ObjectNotFoundErro
 def config() -> S3Config:
     """Return an S3Config for tests."""
     return S3Config(
-        aws_access_key_id="key",
-        aws_secret_access_key="secret",
+        aws_access_key_id=os.environ.get("TEST_S3_ACCESS_KEY_ID", "key"),
+        aws_secret_access_key=os.environ.get("TEST_S3_SECRET_ACCESS_KEY", "secret"),
         endpoint_url="https://s3.example.com",
         region_name="us-east-1",
         bucket_name="test-bucket",
@@ -207,7 +208,9 @@ async def test_get_presigned_url_returns_url(store: AsyncS3ObjectStore) -> None:
     assert url == "https://signed.example.com/obj"
 
 
-async def test_get_presigned_url_raises_internal_error_on_failure(store: AsyncS3ObjectStore) -> None:
+async def test_get_presigned_url_raises_internal_error_on_failure(
+    store: AsyncS3ObjectStore,
+) -> None:
     """get_presigned_url wraps ClientError in S3InternalError."""
     err = _make_client_error("InternalError")
     mock_client = AsyncMock()
@@ -236,9 +239,12 @@ def test_s3_config_from_settings() -> None:
     """S3Config.from_settings creates a config matching the settings values."""
     from axiom.objectstore.s3 import S3Settings
 
+    access_id = os.environ.get("TEST_S3_ACCESS_KEY_ID", "key123")
+    access_cred = os.environ.get("TEST_S3_SECRET_ACCESS_KEY", "secret456")
+
     settings = S3Settings(
-        S3_AWS_ACCESS_KEY_ID="key123",
-        S3_AWS_SECRET_ACCESS_KEY="secret456",
+        S3_AWS_ACCESS_KEY_ID=access_id,
+        S3_AWS_SECRET_ACCESS_KEY=access_cred,
         S3_ENDPOINT_URL="https://minio.example.com",
         S3_REGION_NAME="eu-central-1",
         S3_BUCKET_NAME="my-bucket",
@@ -246,8 +252,8 @@ def test_s3_config_from_settings() -> None:
         S3_IS_PUBLIC=False,
     )
     cfg = S3Config.from_settings(settings)
-    assert cfg.aws_access_key_id == "key123"
-    assert cfg.aws_secret_access_key == "secret456"
+    assert cfg.aws_access_key_id == access_id
+    assert cfg.aws_secret_access_key == access_cred
     assert cfg.endpoint_url == "https://minio.example.com"
     assert cfg.region_name == "eu-central-1"
     assert cfg.service_name == "s3"
