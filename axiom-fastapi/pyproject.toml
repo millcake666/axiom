@@ -7,7 +7,13 @@ requires-python = ">=3.13"
 dependencies = [
     "axiom-core",
     "fastapi>=0.115.0,<1",
+    "structlog>=24.0,<26",
+    "uvicorn>=0.29.0,<1",
+    "tomlkit>=0.12,<1",
 ]
+
+[project.optional-dependencies]
+gunicorn = ["gunicorn>=21.0", "uvicorn[standard]>=0.29"]
 
 [dependency-groups]
 dev = [

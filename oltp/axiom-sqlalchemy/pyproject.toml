@@ -13,6 +13,7 @@ dependencies = [
 [project.optional-dependencies]
 postgres = ["asyncpg>=0.29.0", "psycopg[binary]>=3.0"]
 sqlite = ["aiosqlite>=0.19.0"]
+fastapi = ["fastapi>=0.115.0,<1", "axiom-fastapi", "structlog>=24.0,<26"]
 
 [dependency-groups]
 dev = [
@@ -31,6 +32,7 @@ pythonpath = ["."]
 
 [tool.uv.sources]
 axiom-core = { workspace = true }
+axiom-fastapi = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

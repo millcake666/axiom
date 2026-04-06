@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
 from axiom.cache.manager import CacheManager
 from axiom.cache.schemas import CacheInvalidateParams

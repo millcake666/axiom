@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import dill  # type: ignore[import-untyped]
+import dill  # type: ignore[import-untyped]  # nosec B403
 
 from axiom.cache.serialization import SerializationStrategy
 
@@ -18,4 +18,4 @@ class DillStrategy(SerializationStrategy):
 
     def deserialize(self, data: bytes) -> Any:
         """Deserialize bytes using dill."""
-        return dill.loads(data)  # noqa: S301
+        return dill.loads(data)  # noqa: S301  # nosec B301

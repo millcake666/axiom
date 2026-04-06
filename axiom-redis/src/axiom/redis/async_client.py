@@ -6,7 +6,6 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 import redis.asyncio as aioredis
-
 from axiom.redis.exception import RedisOperationError
 from axiom.redis.settings import RedisSettings
 
@@ -109,7 +108,8 @@ def create_async_redis_client(settings: RedisSettings) -> AsyncRedisClient:
 
     if settings.REDIS_USE_CLUSTER:
         client: aioredis.Redis | aioredis.RedisCluster = aioredis.RedisCluster.from_url(
-            settings.REDIS_URL, **kwargs
+            settings.REDIS_URL,
+            **kwargs,
         )
     else:
         client = aioredis.Redis.from_url(settings.REDIS_URL, **kwargs)

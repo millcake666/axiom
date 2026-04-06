@@ -6,7 +6,6 @@ from collections.abc import Iterator
 from typing import Any, cast
 
 import redis
-
 from axiom.redis.exception import RedisOperationError
 from axiom.redis.settings import RedisSettings
 
@@ -109,7 +108,8 @@ def create_sync_redis_client(settings: RedisSettings) -> SyncRedisClient:
 
     if settings.REDIS_USE_CLUSTER:
         client: redis.Redis | redis.RedisCluster = redis.RedisCluster.from_url(
-            settings.REDIS_URL, **kwargs
+            settings.REDIS_URL,
+            **kwargs,
         )
     else:
         client = redis.Redis.from_url(settings.REDIS_URL, **kwargs)

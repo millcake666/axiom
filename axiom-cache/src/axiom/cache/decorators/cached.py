@@ -29,7 +29,10 @@ def cached(
             @wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 key = _key_maker.make_key(func, *args, **kwargs)
-                assert isinstance(backend, AsyncCacheBackend)
+                if not isinstance(backend, AsyncCacheBackend):
+                    raise TypeError(
+                        f"Expected AsyncCacheBackend for async function, got {type(backend).__name__}",
+                    )
                 cached_value = await backend.get(key)
                 if cached_value is not None:
                     return cached_value
@@ -43,7 +46,10 @@ def cached(
             @wraps(func)
             def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 key = _key_maker.make_key(func, *args, **kwargs)
-                assert isinstance(backend, SyncCacheBackend)
+                if not isinstance(backend, SyncCacheBackend):
+                    raise TypeError(
+                        f"Expected SyncCacheBackend for sync function, got {type(backend).__name__}",
+                    )
                 cached_value = backend.get(key)
                 if cached_value is not None:
                     return cached_value

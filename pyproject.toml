@@ -54,3 +54,9 @@ known-first-party = ["axiom"]
 
 [tool.ruff.format]
 docstring-code-format = true
+
+[tool.mypy]
+
+[[tool.mypy.overrides]]
+module = "aiofiles.*"
+ignore_missing_imports = true

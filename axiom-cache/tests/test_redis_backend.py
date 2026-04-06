@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.cache.redis import AsyncRedisCache, SyncRedisCache
 
 

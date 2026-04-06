@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.cache.decorators.cached import cached
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
 
@@ -29,6 +27,7 @@ class TestCachedDecoratorAsync:
 
     async def test_different_args_not_shared(self, async_inmemory: AsyncInMemoryCache) -> None:
         """Different arguments produce separate cache entries."""
+
         @cached(async_inmemory)
         async def fn(x: int) -> int:
             return x + 1
@@ -38,6 +37,7 @@ class TestCachedDecoratorAsync:
 
     async def test_with_ttl(self, async_inmemory: AsyncInMemoryCache) -> None:
         """Cache with TTL still works on first call."""
+
         @cached(async_inmemory, ttl=60)
         async def fn(x: int) -> str:
             return f"val_{x}"
@@ -70,6 +70,7 @@ class TestCachedDecoratorSync:
 
     def test_different_args_not_shared(self, sync_inmemory: SyncInMemoryCache) -> None:
         """Different arguments produce separate cache entries."""
+
         @cached(sync_inmemory)
         def fn(x: int) -> int:
             return x + 10
@@ -79,6 +80,7 @@ class TestCachedDecoratorSync:
 
     def test_preserves_function_name(self, sync_inmemory: SyncInMemoryCache) -> None:
         """Decorator preserves __name__ of wrapped function."""
+
         @cached(sync_inmemory)
         def my_func() -> None:
             pass

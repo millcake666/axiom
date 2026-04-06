@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.redis.async_client import AsyncRedisClient
-from axiom.redis.exception import RedisOperationError
 
 
 class TestAsyncRedisClientGetSet:

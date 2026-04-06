@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.redis.sync_client import SyncRedisClient
-from axiom.redis.exception import RedisOperationError
 
 
 class TestSyncRedisClientGetSet:

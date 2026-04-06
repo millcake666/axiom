@@ -5,8 +5,6 @@ from __future__ import annotations
 import asyncio
 import time
 
-import pytest
-
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
 
 

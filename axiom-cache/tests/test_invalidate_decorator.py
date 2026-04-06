@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from axiom.cache.decorators.cached import cached
 from axiom.cache.decorators.invalidate import invalidate
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
@@ -45,7 +43,8 @@ class TestInvalidateDecoratorAsync:
         assert call_count == 2
 
     async def test_does_not_invalidate_unrelated(
-        self, async_inmemory: AsyncInMemoryCache
+        self,
+        async_inmemory: AsyncInMemoryCache,
     ) -> None:
         """Invalidation with params only removes matching entries."""
         km = FunctionKeyMaker()
@@ -108,6 +107,7 @@ class TestInvalidateDecoratorSync:
 
     def test_preserves_function_name(self, sync_inmemory: SyncInMemoryCache) -> None:
         """Decorator preserves __name__ of wrapped function."""
+
         @invalidate(
             CacheInvalidateParams(functions=[lambda: None]),
             backend=sync_inmemory,

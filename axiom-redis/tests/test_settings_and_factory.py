@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
-import fakeredis
-import fakeredis.aioredis
 import pytest
 
 from axiom.redis.async_client import AsyncRedisClient, create_async_redis_client

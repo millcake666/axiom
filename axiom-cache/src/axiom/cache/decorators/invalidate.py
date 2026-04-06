@@ -39,7 +39,10 @@ def invalidate(
             @wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 result = await func(*args, **kwargs)
-                assert isinstance(backend, AsyncCacheBackend)
+                if not isinstance(backend, AsyncCacheBackend):
+                    raise TypeError(
+                        f"Expected AsyncCacheBackend for async function, got {type(backend).__name__}",
+                    )
                 sig = inspect.signature(func)
                 bound = sig.bind(*args, **kwargs)
                 bound.apply_defaults()
@@ -54,14 +57,15 @@ def invalidate(
                                 param_name = cp.caching_func_param or cp.wrapped_func_param
                                 if "." in param_name:
                                     val = _get_nested_attr(
-                                        arg_val, param_name.split(".", 1)[1]
+                                        arg_val,
+                                        param_name.split(".", 1)[1],
                                     )
                                     short_name = param_name.split(".")[-1]
                                 else:
                                     val = arg_val
                                     short_name = param_name
                                 param_strings.append(
-                                    _key_maker.make_function_param(short_name, val)
+                                    _key_maker.make_function_param(short_name, val),
                                 )
                         await backend.delete_by_pattern(mask, param_strings)
                 return result
@@ -72,7 +76,10 @@ def invalidate(
             @wraps(func)
             def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 result = func(*args, **kwargs)
-                assert isinstance(backend, SyncCacheBackend)
+                if not isinstance(backend, SyncCacheBackend):
+                    raise TypeError(
+                        f"Expected SyncCacheBackend for sync function, got {type(backend).__name__}",
+                    )
                 sig = inspect.signature(func)
                 bound = sig.bind(*args, **kwargs)
                 bound.apply_defaults()
@@ -87,7 +94,7 @@ def invalidate(
                                 param_name = cp.caching_func_param or cp.wrapped_func_param
                                 val = arg_val
                                 param_strings.append(
-                                    _key_maker.make_function_param(param_name, val)
+                                    _key_maker.make_function_param(param_name, val),
                                 )
                         backend.delete_by_pattern(mask, param_strings)
                 return result

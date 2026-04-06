@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from pydantic import BaseModel
 
 from axiom.cache.serialization import get_serializer
