@@ -1,7 +1,5 @@
 """Tests for AsyncInMemoryCache and SyncInMemoryCache."""
 
-from __future__ import annotations
-
 import asyncio
 import time
 

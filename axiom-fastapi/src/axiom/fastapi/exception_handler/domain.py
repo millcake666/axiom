@@ -1,7 +1,5 @@
 """axiom.fastapi.exception_handler.domain — Handler for BaseError domain exceptions."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 import structlog

@@ -1,7 +1,5 @@
 """axiom.cache.serialization.pydantic_strategy — Pydantic-aware serialization strategy."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import orjson

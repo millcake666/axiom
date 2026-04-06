@@ -1,7 +1,5 @@
 """axiom.cache.inmemory.async_backend — Async in-memory cache backend."""
 
-from __future__ import annotations
-
 import asyncio
 import fnmatch
 import time

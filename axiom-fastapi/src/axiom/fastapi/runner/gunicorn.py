@@ -1,7 +1,5 @@
 """axiom.fastapi.runner.gunicorn — Gunicorn runner with UvicornWorker."""
 
-from __future__ import annotations
-
 try:
     import uvloop as _uvloop  # type: ignore[import-not-found]  # noqa: F401
 

@@ -1,7 +1,5 @@
 """axiom.cache.manager — CacheManager bundles backend + key_maker."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from typing import Any
 

@@ -1,7 +1,5 @@
 """axiom.fastapi.exception_handler.validation — Handler for RequestValidationError."""
 
-from __future__ import annotations
-
 from starlette.requests import Request
 
 from axiom.core.exceptions.base import ErrorDetail

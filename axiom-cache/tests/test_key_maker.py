@@ -1,7 +1,5 @@
 """Tests for FunctionKeyMaker."""
 
-from __future__ import annotations
-
 from axiom.cache.key_maker.function_key_maker import FunctionKeyMaker
 
 

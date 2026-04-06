@@ -1,7 +1,5 @@
 """axiom.oltp.sqlalchemy.exception_handler.integrity — SQLAlchemy IntegrityError handler."""
 
-from __future__ import annotations
-
 import structlog
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse

@@ -1,7 +1,5 @@
 """axiom.redis.async_client — Async Redis client."""
 
-from __future__ import annotations
-
 from collections.abc import AsyncIterator
 from typing import Any
 

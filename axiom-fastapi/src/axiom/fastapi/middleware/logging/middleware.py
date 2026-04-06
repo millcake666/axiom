@@ -1,7 +1,5 @@
 """axiom.fastapi.middleware.logging.middleware — Request/response logging middleware."""
 
-from __future__ import annotations
-
 import time
 import uuid
 from typing import Any

@@ -1,7 +1,5 @@
 """axiom.fastapi.app.builder — create_app() factory function."""
 
-from __future__ import annotations
-
 from axiom.fastapi.app.config import AppConfig
 from fastapi import FastAPI
 

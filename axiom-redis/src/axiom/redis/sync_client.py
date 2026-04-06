@@ -1,7 +1,5 @@
 """axiom.redis.sync_client — Sync Redis client."""
 
-from __future__ import annotations
-
 from collections.abc import Iterator
 from typing import Any, cast
 

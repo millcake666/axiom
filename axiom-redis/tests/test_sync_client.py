@@ -1,7 +1,5 @@
 """Tests for SyncRedisClient."""
 
-from __future__ import annotations
-
 from axiom.redis.sync_client import SyncRedisClient
 
 

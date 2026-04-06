@@ -1,7 +1,5 @@
 """Tests for the @invalidate decorator."""
 
-from __future__ import annotations
-
 from axiom.cache.decorators.cached import cached
 from axiom.cache.decorators.invalidate import invalidate
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache

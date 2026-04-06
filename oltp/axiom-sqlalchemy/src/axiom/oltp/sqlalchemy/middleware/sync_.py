@@ -1,7 +1,5 @@
 """axiom.oltp.sqlalchemy.middleware.sync_ — Sync middleware for SQLAlchemy session scoping."""
 
-from __future__ import annotations
-
 import uuid
 
 from starlette.middleware.base import BaseHTTPMiddleware

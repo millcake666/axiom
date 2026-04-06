@@ -1,7 +1,5 @@
 """axiom.cache.serialization.dill_strategy — dill serialization strategy."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import dill  # type: ignore[import-untyped]  # nosec B403

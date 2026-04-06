@@ -1,7 +1,5 @@
 """axiom.oltp.sqlalchemy.middleware.async_ — Async ASGI middleware for SQLAlchemy session scoping."""
 
-from __future__ import annotations
-
 import uuid
 from typing import Any
 

@@ -1,7 +1,5 @@
 """axiom.core.entities.schema — Base Pydantic schemas for DTOs and responses."""
 
-from __future__ import annotations
-
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict

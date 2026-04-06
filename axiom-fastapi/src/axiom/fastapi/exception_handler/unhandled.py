@@ -1,7 +1,5 @@
 """axiom.fastapi.exception_handler.unhandled — Catch-all exception handler."""
 
-from __future__ import annotations
-
 import structlog
 from starlette.requests import Request
 

@@ -1,7 +1,5 @@
 """axiom.core.entities.domain — Base domain dataclass with identity and timestamps."""
 
-from __future__ import annotations
-
 import dataclasses
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -63,7 +61,7 @@ class BaseDomainDC:
         return {f.name: _serialize_value(getattr(self, f.name)) for f in dataclasses.fields(self)}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BaseDomainDC:
+    def from_dict(cls, data: dict[str, Any]) -> "BaseDomainDC":
         """Construct an instance from a plain dict.
 
         String values are coerced to UUID or datetime where the field type

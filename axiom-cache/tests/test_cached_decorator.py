@@ -1,7 +1,5 @@
 """Tests for the @cached decorator."""
 
-from __future__ import annotations
-
 from axiom.cache.decorators.cached import cached
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
 

@@ -1,7 +1,5 @@
 """Tests for AsyncRedisCache and SyncRedisCache using fakeredis."""
 
-from __future__ import annotations
-
 from axiom.cache.redis import AsyncRedisCache, SyncRedisCache
 
 

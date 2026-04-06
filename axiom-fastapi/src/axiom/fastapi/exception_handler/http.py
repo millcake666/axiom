@@ -1,7 +1,5 @@
 """axiom.fastapi.exception_handler.http — Handler for starlette HTTPException."""
 
-from __future__ import annotations
-
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 

@@ -1,8 +1,6 @@
 # ruff: noqa: E501
 """axiom.core.filter.expr — Filter expression types."""
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import Annotated, Any, Literal
 
@@ -17,14 +15,14 @@ class FilterExpr(BaseModel, ABC):
     kind: str
 
     @abstractmethod
-    def extract_filter_params(self) -> list[FilterParam]:
+    def extract_filter_params(self) -> "list[FilterParam]":
         """Extract all filter parameters from the node."""
 
-    def __and__(self, other: FilterParam | FilterGroup) -> FilterGroup:
+    def __and__(self, other: "FilterParam | FilterGroup") -> "FilterGroup":
         """Combine with another filter using AND operator."""
         return FilterGroup(type=FilterType.AND, items=[self, other])  # type: ignore[list-item]
 
-    def __or__(self, other: FilterParam | FilterGroup) -> FilterGroup:
+    def __or__(self, other: "FilterParam | FilterGroup") -> "FilterGroup":
         """Combine with another filter using OR operator."""
         return FilterGroup(type=FilterType.OR, items=[self, other])  # type: ignore[list-item]
 
@@ -37,7 +35,7 @@ class FilterParam(FilterExpr):
     value: Any = Field(..., examples=["abc"])
     operator: QueryOperator = Field(..., examples=[QueryOperator.EQUALS])
 
-    def extract_filter_params(self) -> list[FilterParam]:
+    def extract_filter_params(self) -> "list[FilterParam]":
         """Return this filter parameter as a single-element list."""
         return [self]
 
@@ -53,7 +51,7 @@ class FilterGroup(FilterExpr):
 
     kind: Literal["group"] = "group"
     type: FilterType = Field(..., examples=[FilterType.AND])
-    items: list[FilterNode] = Field(..., examples=[[]])
+    items: list["FilterNode"] = Field(..., examples=[[]])
 
     def extract_filter_params(self) -> list[FilterParam]:
         """Recursively extract all filter parameters from child nodes."""

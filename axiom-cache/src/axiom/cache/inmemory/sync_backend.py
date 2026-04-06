@@ -1,7 +1,5 @@
 """axiom.cache.inmemory.sync_backend — Synchronous in-memory cache backend."""
 
-from __future__ import annotations
-
 import fnmatch
 import threading
 import time

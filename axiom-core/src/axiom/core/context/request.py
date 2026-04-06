@@ -1,7 +1,5 @@
 """axiom.core.context.request — Per-request context dataclass and helpers."""
 
-from __future__ import annotations
-
 from contextvars import Token
 from dataclasses import dataclass, field
 from typing import Any

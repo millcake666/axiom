@@ -1,7 +1,5 @@
 """axiom.fastapi.docs.routes — Configurable Swagger/ReDoc doc routes."""
 
-from __future__ import annotations
-
 from pydantic import BaseModel
 
 from fastapi import FastAPI

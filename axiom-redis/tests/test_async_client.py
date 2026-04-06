@@ -1,7 +1,5 @@
 """Tests for AsyncRedisClient."""
 
-from __future__ import annotations
-
 from axiom.redis.async_client import AsyncRedisClient
 
 

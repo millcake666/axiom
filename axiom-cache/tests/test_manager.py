@@ -1,7 +1,5 @@
 """Tests for CacheManager."""
 
-from __future__ import annotations
-
 from axiom.cache.inmemory import AsyncInMemoryCache, SyncInMemoryCache
 from axiom.cache.manager import CacheManager
 from axiom.cache.schemas import CacheInvalidateParams

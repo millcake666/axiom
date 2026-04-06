@@ -71,6 +71,22 @@ check-precommit: ## Check
 	uv run pre-commit run --all-files
 
 
+# Test targets
+# ------------
+
+.PHONY: test
+test: ## Run all tests (per-package to avoid cross-package import conflicts)
+	@failed=0; \
+	for pkg in axiom-* oltp/axiom-* olap/axiom-*; do \
+		[ -d "$$pkg/tests" ] || continue; \
+		echo "\033[34m--- $$pkg ---\033[0m"; \
+		(cd "$$pkg" && uv run pytest tests); rc=$$?; \
+		[ $$rc -eq 5 ] && continue; \
+		[ $$rc -ne 0 ] && failed=1; \
+	done; \
+	exit $$failed
+
+
 # Release targets
 # ---------------
 # Usage:

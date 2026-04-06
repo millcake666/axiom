@@ -1,7 +1,5 @@
 """axiom.cache.serialization.orjson_strategy — orjson serialization strategy."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import orjson

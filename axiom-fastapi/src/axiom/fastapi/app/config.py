@@ -1,7 +1,5 @@
 """axiom.fastapi.app.config — AppConfig for create_app()."""
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any, Callable
 
@@ -31,7 +29,7 @@ class AppConfig(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     @model_validator(mode="after")
-    def _fill_from_pyproject(self) -> AppConfig:
+    def _fill_from_pyproject(self) -> "AppConfig":
         if self.pyproject_path is not None:
             from axiom.core.project.info import ProjectInfo
 

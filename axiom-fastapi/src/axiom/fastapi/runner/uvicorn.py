@@ -1,7 +1,5 @@
 """axiom.fastapi.runner.uvicorn — Uvicorn runner for axiom FastAPI apps."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any, Callable
 
 import uvicorn

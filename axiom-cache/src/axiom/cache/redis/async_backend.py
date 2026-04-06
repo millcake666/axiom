@@ -1,7 +1,5 @@
 """axiom.cache.redis.async_backend — Async Redis cache backend."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from axiom.cache.base import AsyncCacheBackend

@@ -1,7 +1,5 @@
 """axiom.cache.serialization.msgpack_strategy — msgpack serialization strategy."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import msgpack  # type: ignore[import-untyped]

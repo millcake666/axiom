@@ -1,7 +1,5 @@
 """axiom.objectstore.s3.config — Pydantic config models for S3 object storage."""
 
-from __future__ import annotations
-
 from pydantic import BaseModel
 
 
@@ -56,7 +54,7 @@ class S3Config(BaseModel):
     is_public: bool = True
 
     @classmethod
-    def from_settings(cls, settings: S3Settings) -> S3Config:
+    def from_settings(cls, settings: S3Settings) -> "S3Config":
         """Create an ``S3Config`` from an ``S3Settings`` mixin instance.
 
         Args:

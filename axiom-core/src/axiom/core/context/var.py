@@ -1,7 +1,5 @@
 """axiom.core.context.var — Type-safe ContextVar wrapper."""
 
-from __future__ import annotations
-
 from contextvars import ContextVar, Token
 from typing import Generic, TypeVar
 

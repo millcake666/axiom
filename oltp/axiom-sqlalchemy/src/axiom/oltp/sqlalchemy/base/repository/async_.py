@@ -307,6 +307,9 @@ class AsyncSQLAlchemyRepository[
         return list(cols)
 
     def _get_model_field_type(self, _model: type[ModelType], _field: str) -> type:
+        if "." in _field:
+            resolved_model, column_name = self._resolve_field_relation(_field)
+            return getattr(resolved_model, column_name).type.python_type
         return getattr(_model, _field).type.python_type
 
     def _resolve_field_relation(self, field: str) -> tuple[type[ModelType], str]:

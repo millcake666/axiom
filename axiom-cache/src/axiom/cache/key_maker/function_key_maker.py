@@ -1,7 +1,5 @@
 """axiom.cache.key_maker.function_key_maker — Default function-based key generation."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from typing import Any
 

@@ -6,8 +6,6 @@ queries OSV API for all packages in uv.lock, and exits with code 1
 if any suppressed CVE now has a fix version available.
 """
 
-from __future__ import annotations
-
 import json
 import re
 import sys

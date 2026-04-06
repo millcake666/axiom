@@ -1,7 +1,5 @@
 """Round-trip tests for all serialization strategies."""
 
-from __future__ import annotations
-
 from pydantic import BaseModel
 
 from axiom.cache.serialization import get_serializer

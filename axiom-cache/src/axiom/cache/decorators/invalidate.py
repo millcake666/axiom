@@ -1,7 +1,5 @@
 """axiom.cache.decorators.invalidate — @invalidate decorator for cache invalidation."""
 
-from __future__ import annotations
-
 import inspect
 from collections.abc import Callable
 from functools import wraps
