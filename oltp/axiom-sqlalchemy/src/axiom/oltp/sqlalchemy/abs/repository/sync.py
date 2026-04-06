@@ -4,6 +4,7 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Sequence
 from enum import Enum
 from typing import Any
 
@@ -84,49 +85,19 @@ class SyncBaseRepository[ModelType, SessionType, QueryType](ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _query(self) -> QueryType:
+    def create_or_update(self, model: ModelType) -> ModelType:
         raise NotImplementedError
 
     @abstractmethod
-    def _maybe_join(self, query: QueryType, field: str) -> QueryType:
+    def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         raise NotImplementedError
 
     @abstractmethod
-    def _filter(self, query: QueryType, filter_request: FilterRequest) -> QueryType:
+    def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         raise NotImplementedError
 
     @abstractmethod
-    def _paginate(self, query: QueryType, skip: int = 0, limit: int = 100) -> QueryType:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _sort_by(
-        self,
-        query: QueryType,
-        sort_by: str | None,
-        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
-    ) -> QueryType:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _get_by(
-        self,
-        field: str,
-        value: Any,
-        operator: QueryOperator = QueryOperator.EQUALS,
-    ) -> Any:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _all(self, query: QueryType) -> list[ModelType]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _one_or_none(self, query: QueryType) -> ModelType | None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _count(self, query: QueryType) -> int:
+    def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         raise NotImplementedError
 
     def get_all(
@@ -197,6 +168,52 @@ class SyncBaseRepository[ModelType, SessionType, QueryType](ABC):
                 query = self._maybe_join(query=query, field=param.field)
             query = self._filter(query, filter_request)
         return self._count(query)
+
+    @abstractmethod
+    def _query(self) -> QueryType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _maybe_join(self, query: QueryType, field: str) -> QueryType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _filter(self, query: QueryType, filter_request: FilterRequest) -> QueryType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _paginate(self, query: QueryType, skip: int = 0, limit: int = 100) -> QueryType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _sort_by(
+        self,
+        query: QueryType,
+        sort_by: str | None,
+        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
+    ) -> QueryType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_by(
+        self,
+        field: str,
+        value: Any,
+        operator: QueryOperator = QueryOperator.EQUALS,
+    ) -> Any:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _all(self, query: QueryType) -> list[ModelType]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _one_or_none(self, query: QueryType) -> ModelType | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _count(self, query: QueryType) -> int:
+        raise NotImplementedError
 
     def _get_deep_unique_from_dict(
         self,

@@ -558,3 +558,119 @@ class TestSyncRepository:
         sync_session.flush()
         assert tag is not None
         assert tag.label == "python"
+
+    def test_create_or_update_creates_new(self, repo):
+        model = UserModel(name="SYNC_COU_New", email="sync_cou_new@test.com", age=11)
+        result = repo.create_or_update(model)
+        repo.session.flush()
+        assert result is not None
+        assert result.name == "SYNC_COU_New"
+
+    def test_create_or_update_updates_existing(self, repo):
+        repo.create_or_update_by(
+            attributes={"name": "SYNC_COU_E", "email": "sync_cou_e@test.com", "age": 22},
+        )
+        repo.session.commit()
+        model = UserModel(name="SYNC_COU_E_upd", email="sync_cou_e@test.com", age=99)
+        result = repo.create_or_update(model)
+        repo.session.flush()
+        assert result is not None
+        assert result.age == 99
+
+    def test_create_or_update_many_empty(self, repo):
+        result = repo.create_or_update_many([])
+        assert result == []
+
+    def test_create_or_update_many_all_new(self, repo):
+        models = [
+            UserModel(name="SYNC_COUM_N1", email="sync_coum_n1@test.com", age=1),
+            UserModel(name="SYNC_COUM_N2", email="sync_coum_n2@test.com", age=2),
+        ]
+        results = repo.create_or_update_many(models)
+        repo.session.flush()
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    def test_create_or_update_many_all_existing(self, repo):
+        repo.create_or_update_by(
+            attributes={"name": "SYNC_COUM_E1", "email": "sync_coum_e1@test.com", "age": 10},
+        )
+        repo.create_or_update_by(
+            attributes={"name": "SYNC_COUM_E2", "email": "sync_coum_e2@test.com", "age": 20},
+        )
+        repo.session.commit()
+        models = [
+            UserModel(name="SYNC_COUM_E1_upd", email="sync_coum_e1@test.com", age=11),
+            UserModel(name="SYNC_COUM_E2_upd", email="sync_coum_e2@test.com", age=21),
+        ]
+        results = repo.create_or_update_many(models)
+        repo.session.flush()
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {11, 21}
+
+    def test_create_or_update_many_mixed(self, repo):
+        repo.create_or_update_by(
+            attributes={
+                "name": "SYNC_COUM_M_exist",
+                "email": "sync_coum_m_exist@test.com",
+                "age": 50,
+            },
+        )
+        repo.session.commit()
+        models = [
+            UserModel(name="SYNC_COUM_M_exist_upd", email="sync_coum_m_exist@test.com", age=51),
+            UserModel(name="SYNC_COUM_M_new", email="sync_coum_m_new@test.com", age=52),
+        ]
+        results = repo.create_or_update_many(models)
+        repo.session.flush()
+        assert len(results) == 2
+
+    def test_update_many_empty(self, repo):
+        result = repo.update_many([])
+        assert result == []
+
+    def test_update_many_single(self, repo):
+        user = repo.create({"name": "SYNC_UM_S1", "email": "sync_um_s1@test.com", "age": 10})
+        repo.session.flush()
+        user.age = 99
+        results = repo.update_many([user])
+        repo.session.flush()
+        assert len(results) == 1
+        assert results[0].age == 99
+
+    def test_update_many_multiple(self, repo):
+        user1 = repo.create({"name": "SYNC_UM_M1", "email": "sync_um_m1@test.com", "age": 10})
+        user2 = repo.create({"name": "SYNC_UM_M2", "email": "sync_um_m2@test.com", "age": 20})
+        repo.session.flush()
+        user1.age = 88
+        user2.age = 77
+        results = repo.update_many([user1, user2])
+        repo.session.flush()
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    def test_delete_many_empty(self, repo):
+        result = repo.delete_many([])
+        assert result == []
+
+    def test_delete_many_single(self, repo):
+        user = repo.create({"name": "SYNC_DM_S1", "email": "sync_dm_s1@test.com", "age": 10})
+        repo.session.flush()
+        results = repo.delete_many([user])
+        assert len(results) == 1
+        assert results[0].name == "SYNC_DM_S1"
+        found = repo.get_by(field="email", value="sync_dm_s1@test.com", unique=True)
+        assert found is None
+
+    def test_delete_many_multiple(self, repo):
+        user1 = repo.create({"name": "SYNC_DM_M1", "email": "sync_dm_m1@test.com", "age": 10})
+        user2 = repo.create({"name": "SYNC_DM_M2", "email": "sync_dm_m2@test.com", "age": 20})
+        repo.session.flush()
+        results = repo.delete_many([user1, user2])
+        assert len(results) == 2
+        found1 = repo.get_by(field="email", value="sync_dm_m1@test.com", unique=True)
+        found2 = repo.get_by(field="email", value="sync_dm_m2@test.com", unique=True)
+        assert found1 is None
+        assert found2 is None

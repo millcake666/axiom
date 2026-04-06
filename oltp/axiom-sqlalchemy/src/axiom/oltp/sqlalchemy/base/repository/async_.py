@@ -2,6 +2,7 @@
 # mypy: disable-error-code="name-defined,valid-type,type-arg,attr-defined,assignment,arg-type,misc,call-overload,call-arg"
 """axiom.oltp.sqlalchemy.base.repository.async_ — Async SQLAlchemy repository."""
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 from axiom.core.exceptions.http import BadRequestError, NotFoundError, ValidationError
@@ -127,6 +128,36 @@ class AsyncSQLAlchemyRepository[
             return await self.create(attributes)
         # Base fallback: try to find existing, update or create
         return await self.create(attributes)
+
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        attrs = {k: v for k, v in self._model_to_dict(model).items() if v is not None}
+        return await self.create_or_update_by(attributes=attrs)
+
+    async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        results = []
+        for m in models:
+            results.append(await self.create_or_update(m))
+        return results
+
+    async def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        dicts = [self._model_to_dict(m) for m in models]
+        await self.session.execute(update(self.model_class), dicts)
+        return list(models)
+
+    async def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        mapper = inspect(self.model_class)
+        pk_col_name = list(mapper.primary_key)[0].key
+        ids = [getattr(m, pk_col_name) for m in models]
+        pk_col = getattr(self.model_class, pk_col_name)
+        stmt = delete(self.model_class).where(pk_col.in_(ids)).returning(self.model_class)
+        select_stmt = self._query().from_statement(stmt)
+        return await self._all(select_stmt)
 
     def _query(self) -> Select:
         return select(self.model_class)
@@ -305,6 +336,10 @@ class AsyncSQLAlchemyRepository[
             if isinstance(constr, UniqueConstraint):
                 cols |= {c.key for c in constr.columns}
         return list(cols)
+
+    def _model_to_dict(self, model: ModelType) -> dict:
+        mapper = inspect(self.model_class)
+        return {col.key: getattr(model, col.key) for col in mapper.columns}
 
     def _get_model_field_type(self, _model: type[ModelType], _field: str) -> type:
         if "." in _field:

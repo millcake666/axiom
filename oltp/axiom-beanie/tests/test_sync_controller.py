@@ -269,3 +269,60 @@ class TestSyncController:
                 ),
                 unique=True,
             )
+
+    def test_create_or_update_creates_new(self, sync_controller):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        model = SyncUserModel(name="COU_New", email="cou_new@x.com", age=11)
+        result = sync_controller.create_or_update(model)
+        assert result is not None
+        assert result.name == "COU_New"
+        assert result.id is not None
+
+    def test_create_or_update_updates_existing(self, sync_controller):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        user = sync_controller.create({"name": "COU_Exist", "email": "cou_ctrl@x.com", "age": 22})
+        model = SyncUserModel(id=user.id, name="COU_Exist_Updated", email="cou_ctrl@x.com", age=99)
+        result = sync_controller.create_or_update(model)
+        assert result is not None
+        assert result.age == 99
+
+    def test_create_or_update_many_empty(self, sync_controller):
+        result = sync_controller.create_or_update_many([])
+        assert result == []
+
+    def test_create_or_update_many_all_new(self, sync_controller):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        models = [
+            SyncUserModel(name="COUM_N1", email="coum_ctrl_n1@x.com", age=1),
+            SyncUserModel(name="COUM_N2", email="coum_ctrl_n2@x.com", age=2),
+        ]
+        results = sync_controller.create_or_update_many(models)
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    def test_update_many_empty(self, sync_controller):
+        result = sync_controller.update_many([])
+        assert result == []
+
+    def test_update_many_multiple(self, sync_controller):
+        user1 = sync_controller.create({"name": "UM_C1", "email": "um_ctrl1@x.com", "age": 10})
+        user2 = sync_controller.create({"name": "UM_C2", "email": "um_ctrl2@x.com", "age": 20})
+        user1.age = 88
+        user2.age = 77
+        results = sync_controller.update_many([user1, user2])
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    def test_delete_many_empty(self, sync_controller):
+        result = sync_controller.delete_many([])
+        assert result == []
+
+    def test_delete_many_multiple(self, sync_controller):
+        user1 = sync_controller.create({"name": "DM_C1", "email": "dm_ctrl1@x.com", "age": 10})
+        user2 = sync_controller.create({"name": "DM_C2", "email": "dm_ctrl2@x.com", "age": 20})
+        results = sync_controller.delete_many([user1, user2])
+        assert len(results) == 2

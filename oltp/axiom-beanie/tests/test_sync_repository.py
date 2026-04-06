@@ -321,3 +321,116 @@ class TestSyncRepository:
     def test_delete_by_unique_not_found(self, repo):
         result = repo.delete_by(field="name", value="no_such_xyz", unique=True)
         assert result is None
+
+    def test_create_or_update_creates_new(self, repo):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        model = SyncUserModel(name="COU_New", email="cou_new@test.com", age=11)
+        result = repo.create_or_update(model)
+        assert result is not None
+        assert result.name == "COU_New"
+        assert result.id is not None
+
+    def test_create_or_update_updates_existing(self, repo):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        user = repo.create({"name": "COU_Exist", "email": "cou_exist@test.com", "age": 22})
+        model = SyncUserModel(
+            id=user.id,
+            name="COU_Exist_Updated",
+            email="cou_exist@test.com",
+            age=99,
+        )
+        result = repo.create_or_update(model)
+        assert result is not None
+        assert result.age == 99
+
+    def test_create_or_update_many_empty(self, repo):
+        result = repo.create_or_update_many([])
+        assert result == []
+
+    def test_create_or_update_many_all_new(self, repo):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        models = [
+            SyncUserModel(name="COUM_N1", email="coum_n1@test.com", age=1),
+            SyncUserModel(name="COUM_N2", email="coum_n2@test.com", age=2),
+        ]
+        results = repo.create_or_update_many(models)
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    def test_create_or_update_many_all_existing(self, repo):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        u1 = repo.create({"name": "COUM_E1", "email": "coum_e1@test.com", "age": 10})
+        u2 = repo.create({"name": "COUM_E2", "email": "coum_e2@test.com", "age": 20})
+        models = [
+            SyncUserModel(id=u1.id, name="COUM_E1_upd", email="coum_e1@test.com", age=11),
+            SyncUserModel(id=u2.id, name="COUM_E2_upd", email="coum_e2@test.com", age=21),
+        ]
+        results = repo.create_or_update_many(models)
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {11, 21}
+
+    def test_create_or_update_many_mixed(self, repo):
+        from tests.fixtures.sync_models import SyncUserModel
+
+        existing = repo.create(
+            {"name": "COUM_M_exist", "email": "coum_m_exist@test.com", "age": 50},
+        )
+        models = [
+            SyncUserModel(
+                id=existing.id,
+                name="COUM_M_exist_upd",
+                email="coum_m_exist@test.com",
+                age=51,
+            ),
+            SyncUserModel(name="COUM_M_new", email="coum_m_new@test.com", age=52),
+        ]
+        results = repo.create_or_update_many(models)
+        assert len(results) == 2
+
+    def test_update_many_empty(self, repo):
+        result = repo.update_many([])
+        assert result == []
+
+    def test_update_many_single(self, repo):
+        user = repo.create({"name": "UM_S1", "email": "um_s1@test.com", "age": 10})
+        user.age = 99
+        results = repo.update_many([user])
+        assert len(results) == 1
+        assert results[0].age == 99
+
+    def test_update_many_multiple(self, repo):
+        user1 = repo.create({"name": "UM_M1", "email": "um_m1@test.com", "age": 10})
+        user2 = repo.create({"name": "UM_M2", "email": "um_m2@test.com", "age": 20})
+        user1.age = 88
+        user2.age = 77
+        results = repo.update_many([user1, user2])
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    def test_delete_many_empty(self, repo):
+        result = repo.delete_many([])
+        assert result == []
+
+    def test_delete_many_single(self, repo):
+        user = repo.create({"name": "DM_S1", "email": "dm_s1@test.com", "age": 10})
+        results = repo.delete_many([user])
+        assert len(results) == 1
+        assert results[0].name == "DM_S1"
+        found = repo.get_by(field="email", value="dm_s1@test.com", unique=True)
+        assert found is None
+
+    def test_delete_many_multiple(self, repo):
+        user1 = repo.create({"name": "DM_M1", "email": "dm_m1@test.com", "age": 10})
+        user2 = repo.create({"name": "DM_M2", "email": "dm_m2@test.com", "age": 20})
+        results = repo.delete_many([user1, user2])
+        assert len(results) == 2
+        found1 = repo.get_by(field="email", value="dm_m1@test.com", unique=True)
+        found2 = repo.get_by(field="email", value="dm_m2@test.com", unique=True)
+        assert found1 is None
+        assert found2 is None

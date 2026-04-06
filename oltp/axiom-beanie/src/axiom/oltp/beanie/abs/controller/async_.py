@@ -568,6 +568,54 @@ class AsyncBaseController[ModelType](ABC):
             raise NotFoundError("Failed to insert or update")
         return result
 
+    @transactional
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        """Upsert a single document using the model instance.
+
+        Args:
+            model: The document instance to insert or update.
+
+        Returns:
+            The created or updated document instance.
+        """
+        return await self.repository.create_or_update(model=model)
+
+    @transactional
+    async def create_or_update_many(self, models: Sequence) -> list[ModelType]:
+        """Upsert multiple documents.
+
+        Args:
+            models: Sequence of document instances to insert or update.
+
+        Returns:
+            List of created or updated document instances.
+        """
+        return await self.repository.create_or_update_many(models=models)
+
+    @transactional
+    async def update_many(self, models: Sequence) -> list[ModelType]:
+        """Update multiple existing documents.
+
+        Args:
+            models: Sequence of document instances with updated field values.
+
+        Returns:
+            List of updated document instances.
+        """
+        return await self.repository.update_many(models=models)
+
+    @transactional
+    async def delete_many(self, models: Sequence) -> list[ModelType]:
+        """Delete multiple documents.
+
+        Args:
+            models: Sequence of document instances to delete.
+
+        Returns:
+            List of deleted document instances.
+        """
+        return await self.repository.delete_many(models=models)
+
     async def make_pagination_response(
         self,
         data: Sequence,

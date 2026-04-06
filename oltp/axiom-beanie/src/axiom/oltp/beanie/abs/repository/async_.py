@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Sequence
 from typing import Any
 
 from axiom.core.filter.expr import FilterParam, FilterRequest
@@ -183,6 +184,168 @@ class AsyncBaseRepository[ModelType: Document, SessionType, QueryType](ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        """Upsert a single document using the model instance.
+
+        Args:
+            model: The document instance to insert or update.
+
+        Returns:
+            The created or updated document instance.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        """Upsert multiple documents.
+
+        Args:
+            models: Sequence of document instances to insert or update.
+
+        Returns:
+            List of created or updated document instances.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        """Update multiple existing documents.
+
+        Args:
+            models: Sequence of document instances with updated field values.
+
+        Returns:
+            List of updated document instances.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        """Delete multiple documents.
+
+        Args:
+            models: Sequence of document instances to delete.
+
+        Returns:
+            List of deleted document instances.
+        """
+        raise NotImplementedError
+
+    async def get_all(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        sort_by: str | None = None,
+        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
+    ) -> list[ModelType]:
+        """Return all documents with optional sorting and pagination.
+
+        Args:
+            skip: Number of documents to skip.
+            limit: Maximum number of documents to return.
+            sort_by: Field name to sort results by.
+            sort_type: Sort direction; defaults to ascending.
+
+        Returns:
+            List of document instances for the requested page.
+        """
+        query = self._query()
+        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
+        query = self._paginate(query=query, skip=skip, limit=limit)
+        return await self._all(query)
+
+    async def get_by(
+        self,
+        field: str,
+        value: Any,
+        operator: QueryOperator = QueryOperator.EQUALS,
+        skip: int = 0,
+        limit: int = 100,
+        sort_by: str | None = None,
+        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
+        unique: bool = False,
+    ) -> ModelType | None | list[ModelType]:
+        """Fetch documents matching a single field condition.
+
+        Args:
+            field: Document field name to filter on.
+            value: Value to compare against.
+            operator: Comparison operator; defaults to ``EQUALS``.
+            skip: Number of documents to skip.
+            limit: Maximum number of documents to return.
+            sort_by: Field name to sort results by.
+            sort_type: Sort direction; defaults to ascending.
+            unique: If ``True``, return at most one document.
+
+        Returns:
+            A single document or ``None`` when ``unique=True``,
+            otherwise a list of matching documents.
+        """
+        query = self._query()
+        query = self._maybe_join(query=query, field=field)
+        query = self._filter(
+            query=query,
+            filter_request=FilterRequest(
+                chain=FilterParam(field=field, value=value, operator=operator),
+            ),
+        )
+        if unique:
+            return await self._one_or_none(query)
+        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
+        query = self._paginate(query=query, skip=skip, limit=limit)
+        return await self._all(query)
+
+    async def get_by_filters(
+        self,
+        filter_request: FilterRequest | None = None,
+        skip: int = 0,
+        limit: int = 100,
+        sort_by: str | None = None,
+        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
+        unique: bool = False,
+    ) -> ModelType | None | list[ModelType]:
+        """Fetch documents using a structured filter request.
+
+        Args:
+            filter_request: Composite filter to apply; ``None`` matches all.
+            skip: Number of documents to skip.
+            limit: Maximum number of documents to return.
+            sort_by: Field name to sort results by.
+            sort_type: Sort direction; defaults to ascending.
+            unique: If ``True``, return at most one document.
+
+        Returns:
+            A single document or ``None`` when ``unique=True``,
+            otherwise a list of matching documents.
+        """
+        query = self._query()
+        if filter_request is not None:
+            for param in filter_request.extract_filter_params():
+                query = self._maybe_join(query=query, field=param.field)
+            query = self._filter(query=query, filter_request=filter_request)
+        if unique:
+            return await self._one_or_none(query)
+        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
+        query = self._paginate(query=query, skip=skip, limit=limit)
+        return await self._all(query)
+
+    async def count(self, filter_request: FilterRequest | None = None) -> int:
+        """Count documents matching an optional filter.
+
+        Args:
+            filter_request: Filter to apply; ``None`` counts all documents.
+
+        Returns:
+            The total number of matching documents.
+        """
+        query = self._query()
+        if filter_request is not None:
+            for param in filter_request.extract_filter_params():
+                query = self._maybe_join(query=query, field=param.field)
+            query = self._filter(query, filter_request)
+        return await self._count(query)
+
+    @abstractmethod
     def _query(self) -> QueryType:
         """Return a base query object for the managed model.
 
@@ -304,120 +467,6 @@ class AsyncBaseRepository[ModelType: Document, SessionType, QueryType](ABC):
             The number of matching documents.
         """
         raise NotImplementedError
-
-    async def get_all(
-        self,
-        skip: int = 0,
-        limit: int = 100,
-        sort_by: str | None = None,
-        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
-    ) -> list[ModelType]:
-        """Return all documents with optional sorting and pagination.
-
-        Args:
-            skip: Number of documents to skip.
-            limit: Maximum number of documents to return.
-            sort_by: Field name to sort results by.
-            sort_type: Sort direction; defaults to ascending.
-
-        Returns:
-            List of document instances for the requested page.
-        """
-        query = self._query()
-        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
-        query = self._paginate(query=query, skip=skip, limit=limit)
-        return await self._all(query)
-
-    async def get_by(
-        self,
-        field: str,
-        value: Any,
-        operator: QueryOperator = QueryOperator.EQUALS,
-        skip: int = 0,
-        limit: int = 100,
-        sort_by: str | None = None,
-        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
-        unique: bool = False,
-    ) -> ModelType | None | list[ModelType]:
-        """Fetch documents matching a single field condition.
-
-        Args:
-            field: Document field name to filter on.
-            value: Value to compare against.
-            operator: Comparison operator; defaults to ``EQUALS``.
-            skip: Number of documents to skip.
-            limit: Maximum number of documents to return.
-            sort_by: Field name to sort results by.
-            sort_type: Sort direction; defaults to ascending.
-            unique: If ``True``, return at most one document.
-
-        Returns:
-            A single document or ``None`` when ``unique=True``,
-            otherwise a list of matching documents.
-        """
-        query = self._query()
-        query = self._maybe_join(query=query, field=field)
-        query = self._filter(
-            query=query,
-            filter_request=FilterRequest(
-                chain=FilterParam(field=field, value=value, operator=operator),
-            ),
-        )
-        if unique:
-            return await self._one_or_none(query)
-        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
-        query = self._paginate(query=query, skip=skip, limit=limit)
-        return await self._all(query)
-
-    async def get_by_filters(
-        self,
-        filter_request: FilterRequest | None = None,
-        skip: int = 0,
-        limit: int = 100,
-        sort_by: str | None = None,
-        sort_type: SortTypeEnum | None = SortTypeEnum.asc,
-        unique: bool = False,
-    ) -> ModelType | None | list[ModelType]:
-        """Fetch documents using a structured filter request.
-
-        Args:
-            filter_request: Composite filter to apply; ``None`` matches all.
-            skip: Number of documents to skip.
-            limit: Maximum number of documents to return.
-            sort_by: Field name to sort results by.
-            sort_type: Sort direction; defaults to ascending.
-            unique: If ``True``, return at most one document.
-
-        Returns:
-            A single document or ``None`` when ``unique=True``,
-            otherwise a list of matching documents.
-        """
-        query = self._query()
-        if filter_request is not None:
-            for param in filter_request.extract_filter_params():
-                query = self._maybe_join(query=query, field=param.field)
-            query = self._filter(query=query, filter_request=filter_request)
-        if unique:
-            return await self._one_or_none(query)
-        query = self._sort_by(query=query, sort_by=sort_by, sort_type=sort_type)
-        query = self._paginate(query=query, skip=skip, limit=limit)
-        return await self._all(query)
-
-    async def count(self, filter_request: FilterRequest | None = None) -> int:
-        """Count documents matching an optional filter.
-
-        Args:
-            filter_request: Filter to apply; ``None`` counts all documents.
-
-        Returns:
-            The total number of matching documents.
-        """
-        query = self._query()
-        if filter_request is not None:
-            for param in filter_request.extract_filter_params():
-                query = self._maybe_join(query=query, field=param.field)
-            query = self._filter(query, filter_request)
-        return await self._count(query)
 
     def _get_deep_unique_from_dict(
         self,

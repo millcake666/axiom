@@ -309,6 +309,22 @@ class SyncBaseController[ModelType](ABC):
             raise NotFoundError("Failed to insert or update")
         return result
 
+    @transactional
+    def create_or_update(self, model: ModelType) -> ModelType:
+        return self.repository.create_or_update(model=model)
+
+    @transactional
+    def create_or_update_many(self, models: Sequence) -> list[ModelType]:
+        return self.repository.create_or_update_many(models=models)
+
+    @transactional
+    def update_many(self, models: Sequence) -> list[ModelType]:
+        return self.repository.update_many(models=models)
+
+    @transactional
+    def delete_many(self, models: Sequence) -> list[ModelType]:
+        return self.repository.delete_many(models=models)
+
     def make_pagination_response(
         self,
         data: Sequence,

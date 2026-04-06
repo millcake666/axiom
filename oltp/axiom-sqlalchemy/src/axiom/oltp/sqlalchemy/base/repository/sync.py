@@ -2,6 +2,7 @@
 # mypy: disable-error-code="name-defined,valid-type,type-arg,attr-defined,assignment,arg-type,misc,call-overload,call-arg"
 """axiom.oltp.sqlalchemy.base.repository.sync — Sync SQLAlchemy repository."""
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 from axiom.core.exceptions.http import BadRequestError, NotFoundError, ValidationError
@@ -122,6 +123,36 @@ class SyncSQLAlchemyRepository[
         if not conflict_cols:
             return self.create(attributes)
         return self.create(attributes)
+
+    def create_or_update(self, model: ModelType) -> ModelType:
+        attrs = {k: v for k, v in self._model_to_dict(model).items() if v is not None}
+        return self.create_or_update_by(attributes=attrs)
+
+    def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        results = []
+        for m in models:
+            results.append(self.create_or_update(m))
+        return results
+
+    def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        dicts = [self._model_to_dict(m) for m in models]
+        self.session.execute(update(self.model_class), dicts)
+        return list(models)
+
+    def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        mapper = inspect(self.model_class)
+        pk_col_name = list(mapper.primary_key)[0].key
+        ids = [getattr(m, pk_col_name) for m in models]
+        pk_col = getattr(self.model_class, pk_col_name)
+        stmt = delete(self.model_class).where(pk_col.in_(ids)).returning(self.model_class)
+        select_stmt = self._query().from_statement(stmt)
+        return self._all(select_stmt)
 
     def _query(self) -> Select:
         return select(self.model_class)
@@ -297,6 +328,10 @@ class SyncSQLAlchemyRepository[
             if isinstance(constr, UniqueConstraint):
                 cols |= {c.key for c in constr.columns}
         return list(cols)
+
+    def _model_to_dict(self, model: ModelType) -> dict:
+        mapper = inspect(self.model_class)
+        return {col.key: getattr(model, col.key) for col in mapper.columns}
 
     def _get_model_field_type(self, _model: type[ModelType], _field: str) -> type:
         return getattr(_model, _field).type.python_type

@@ -362,3 +362,63 @@ class TestSyncController:
             unique=True,
         )
         assert result.age == 100
+
+    def test_create_or_update_creates_new(self, repo):
+        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        model = UserModel(name="SYNC_CTRL_COU_New", email="sync_ctrl_cou_new@x.com", age=11)
+        result = ctrl.create_or_update(model)
+        assert result is not None
+        assert result.name == "SYNC_CTRL_COU_New"
+
+    def test_create_or_update_updates_existing(self, repo):
+        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl.create_or_update_by(
+            attributes={"name": "SYNC_CTRL_COU_E", "email": "sync_ctrl_cou_e@x.com", "age": 22},
+        )
+        repo.session.expire_all()
+        model = UserModel(name="SYNC_CTRL_COU_E_upd", email="sync_ctrl_cou_e@x.com", age=99)
+        result = ctrl.create_or_update(model)
+        assert result is not None
+        assert result.age == 99
+
+    def test_create_or_update_many_empty(self, controller):
+        result = controller.create_or_update_many([])
+        assert result == []
+
+    def test_create_or_update_many_all_new(self, repo):
+        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        models = [
+            UserModel(name="SYNC_CTRL_COUM_N1", email="sync_ctrl_coum_n1@x.com", age=1),
+            UserModel(name="SYNC_CTRL_COUM_N2", email="sync_ctrl_coum_n2@x.com", age=2),
+        ]
+        results = ctrl.create_or_update_many(models)
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    def test_update_many_empty(self, controller):
+        result = controller.update_many([])
+        assert result == []
+
+    def test_update_many_multiple(self, repo):
+        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        user1 = ctrl.create({"name": "SYNC_CTRL_UM1", "email": "sync_ctrl_um1@x.com", "age": 10})
+        user2 = ctrl.create({"name": "SYNC_CTRL_UM2", "email": "sync_ctrl_um2@x.com", "age": 20})
+        user1.age = 88
+        user2.age = 77
+        results = ctrl.update_many([user1, user2])
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    def test_delete_many_empty(self, controller):
+        result = controller.delete_many([])
+        assert result == []
+
+    def test_delete_many_multiple(self, repo):
+        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        user1 = ctrl.create({"name": "SYNC_CTRL_DM1", "email": "sync_ctrl_dm1@x.com", "age": 10})
+        user2 = ctrl.create({"name": "SYNC_CTRL_DM2", "email": "sync_ctrl_dm2@x.com", "age": 20})
+        results = ctrl.delete_many([user1, user2])
+        assert len(results) == 2
+        found = repo.get_by(field="email", value="sync_ctrl_dm1@x.com", unique=True)
+        assert found is None

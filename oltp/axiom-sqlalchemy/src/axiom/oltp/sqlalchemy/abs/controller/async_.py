@@ -318,6 +318,22 @@ class AsyncBaseController[ModelType](ABC):
             raise NotFoundError("Failed to insert or update")
         return result
 
+    @transactional
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        return await self.repository.create_or_update(model=model)
+
+    @transactional
+    async def create_or_update_many(self, models: Sequence) -> list[ModelType]:
+        return await self.repository.create_or_update_many(models=models)
+
+    @transactional
+    async def update_many(self, models: Sequence) -> list[ModelType]:
+        return await self.repository.update_many(models=models)
+
+    @transactional
+    async def delete_many(self, models: Sequence) -> list[ModelType]:
+        return await self.repository.delete_many(models=models)
+
     async def make_pagination_response(
         self,
         data: Sequence,

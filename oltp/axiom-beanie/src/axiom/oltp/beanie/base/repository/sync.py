@@ -3,6 +3,7 @@
 """axiom.oltp.beanie.base.repository.sync — Sync MongoDB repository using PyMongo."""
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field as dc_field
 from typing import Any
@@ -437,6 +438,35 @@ class SyncMongoRepository[
             }
             return self.update(existing, update_attrs)
         return self.create(attributes)
+
+    def create_or_update(self, model: ModelType) -> ModelType:
+        if model.id is not None:
+            existing_doc = self.collection.find_one({"_id": ObjectId(model.id)})
+            if existing_doc is not None:
+                existing = self._doc_to_model(existing_doc)
+                attrs = {k: v for k, v in model.model_dump().items() if k != "id"}
+                return self.update(existing, attrs)
+        attrs = {k: v for k, v in model.model_dump().items() if k != "id"}
+        return self.create(attrs)
+
+    def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        return [self.create_or_update(m) for m in models]
+
+    def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        results = []
+        for m in models:
+            attrs = {k: v for k, v in m.model_dump().items() if k != "id"}
+            results.append(self.update(m, attrs))
+        return results
+
+    def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        return [self.delete(m) for m in models]
 
     def _update_models(
         self,

@@ -1,7 +1,8 @@
-# ruff: noqa: W505
-# mypy: disable-error-code="valid-type,type-arg,attr-defined,assignment"
+# ruff: noqa: W505, D102
+# mypy: disable-error-code="valid-type,type-arg,attr-defined,assignment,arg-type"
 """axiom.oltp.sqlalchemy.postgres.repository.async_ — Async PostgreSQL repository."""
 
+from collections.abc import Sequence
 from typing import Any
 
 from axiom.oltp.sqlalchemy.base.declarative import Base
@@ -53,3 +54,23 @@ class AsyncPostgresRepository[
 
         select_stmt = self._query().from_statement(stmt)
         return await self._one_or_none(select_stmt)  # type: ignore[return-value, arg-type]
+
+    async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        conflict_cols = self._get_conflict_fields()
+        if not conflict_cols:
+            results = []
+            for m in models:
+                results.append(await self.create_or_update(m))
+            return results
+        rows = [{k: v for k, v in self._model_to_dict(m).items() if v is not None} for m in models]
+        stmt = pg_insert(self.model_class).values(rows)
+        all_non_conflict_keys = {k for row in rows for k in row if k not in conflict_cols}
+        update_set = {k: getattr(stmt.excluded, k) for k in all_non_conflict_keys}
+        stmt = stmt.on_conflict_do_update(
+            index_elements=conflict_cols,
+            set_=update_set,
+        ).returning(self.model_class)
+        select_stmt = self._query().from_statement(stmt)
+        return await self._all(select_stmt)

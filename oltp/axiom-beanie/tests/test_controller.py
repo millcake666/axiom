@@ -258,3 +258,60 @@ class TestController:
     async def test_delete_by_id_not_found_raises(self, controller):
         with pytest.raises(NotFoundError):
             await controller.delete_by_id("000000000000000000000000")
+
+    async def test_create_or_update_creates_new(self, controller):
+        from tests.fixtures.models import UserDocument
+
+        model = UserDocument(name="COU_New", email="cou_new@x.com", age=11)
+        result = await controller.create_or_update(model)
+        assert result is not None
+        assert result.name == "COU_New"
+        assert result.id is not None
+
+    async def test_create_or_update_updates_existing(self, controller):
+        from tests.fixtures.models import UserDocument
+
+        user = await controller.create({"name": "COU_Exist", "email": "cou_ctrl@x.com", "age": 22})
+        model = UserDocument(id=user.id, name="COU_Exist_Updated", email="cou_ctrl@x.com", age=99)
+        result = await controller.create_or_update(model)
+        assert result is not None
+        assert result.age == 99
+
+    async def test_create_or_update_many_empty(self, controller):
+        result = await controller.create_or_update_many([])
+        assert result == []
+
+    async def test_create_or_update_many_all_new(self, controller):
+        from tests.fixtures.models import UserDocument
+
+        models = [
+            UserDocument(name="COUM_N1", email="coum_ctrl_n1@x.com", age=1),
+            UserDocument(name="COUM_N2", email="coum_ctrl_n2@x.com", age=2),
+        ]
+        results = await controller.create_or_update_many(models)
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    async def test_update_many_empty(self, controller):
+        result = await controller.update_many([])
+        assert result == []
+
+    async def test_update_many_multiple(self, controller):
+        user1 = await controller.create({"name": "UM_C1", "email": "um_ctrl1@x.com", "age": 10})
+        user2 = await controller.create({"name": "UM_C2", "email": "um_ctrl2@x.com", "age": 20})
+        user1.age = 88
+        user2.age = 77
+        results = await controller.update_many([user1, user2])
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    async def test_delete_many_empty(self, controller):
+        result = await controller.delete_many([])
+        assert result == []
+
+    async def test_delete_many_multiple(self, controller):
+        user1 = await controller.create({"name": "DM_C1", "email": "dm_ctrl1@x.com", "age": 10})
+        user2 = await controller.create({"name": "DM_C2", "email": "dm_ctrl2@x.com", "age": 20})
+        results = await controller.delete_many([user1, user2])
+        assert len(results) == 2

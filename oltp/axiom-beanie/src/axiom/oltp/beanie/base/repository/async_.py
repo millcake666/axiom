@@ -3,6 +3,7 @@
 """axiom.oltp.beanie.base.repository.async_ — Async Beanie repository."""
 
 import re
+from collections.abc import Sequence
 from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorClientSession as ClientSession
@@ -224,6 +225,34 @@ class AsyncBeanieRepository[
             }
             return await self.update(existing, update_attrs)
         return await self.create(attributes)
+
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        if model.id is not None:
+            existing = await self.model_class.find_one({"_id": model.id}, session=self.session)
+            if existing is not None:
+                attrs = model.model_dump(exclude={"id"})
+                return await self.update(existing, attrs)
+        attrs = model.model_dump(exclude={"id"})
+        return await self.create(attrs)
+
+    async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        return [await self.create_or_update(m) for m in models]
+
+    async def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        results = []
+        for m in models:
+            attrs = m.model_dump(exclude={"id"})
+            results.append(await self.update(m, attrs))
+        return results
+
+    async def delete_many(self, models: Sequence[ModelType]) -> list[ModelType]:
+        if not models:
+            return []
+        return [await self.delete(m) for m in models]
 
     def _query(self) -> Any:
         """Return a base Beanie find query for the managed model.

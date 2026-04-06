@@ -369,3 +369,63 @@ class TestAsyncController:
             unique=True,
         )
         assert result.age == 100
+
+    async def test_create_or_update_creates_new(self, repo):
+        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        model = UserModel(name="CTRL_COU_New", email="ctrl_cou_new@x.com", age=11)
+        result = await ctrl.create_or_update(model)
+        assert result is not None
+        assert result.name == "CTRL_COU_New"
+
+    async def test_create_or_update_updates_existing(self, repo):
+        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        await ctrl.create_or_update_by(
+            attributes={"name": "CTRL_COU_E", "email": "ctrl_cou_e@x.com", "age": 22},
+        )
+        repo.session.expire_all()
+        model = UserModel(name="CTRL_COU_E_upd", email="ctrl_cou_e@x.com", age=99)
+        result = await ctrl.create_or_update(model)
+        assert result is not None
+        assert result.age == 99
+
+    async def test_create_or_update_many_empty(self, controller):
+        result = await controller.create_or_update_many([])
+        assert result == []
+
+    async def test_create_or_update_many_all_new(self, repo):
+        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        models = [
+            UserModel(name="CTRL_COUM_N1", email="ctrl_coum_n1@x.com", age=1),
+            UserModel(name="CTRL_COUM_N2", email="ctrl_coum_n2@x.com", age=2),
+        ]
+        results = await ctrl.create_or_update_many(models)
+        assert len(results) == 2
+        assert all(r.id is not None for r in results)
+
+    async def test_update_many_empty(self, controller):
+        result = await controller.update_many([])
+        assert result == []
+
+    async def test_update_many_multiple(self, repo):
+        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        user1 = await ctrl.create({"name": "CTRL_UM1", "email": "ctrl_um1@x.com", "age": 10})
+        user2 = await ctrl.create({"name": "CTRL_UM2", "email": "ctrl_um2@x.com", "age": 20})
+        user1.age = 88
+        user2.age = 77
+        results = await ctrl.update_many([user1, user2])
+        assert len(results) == 2
+        ages = {r.age for r in results}
+        assert ages == {88, 77}
+
+    async def test_delete_many_empty(self, controller):
+        result = await controller.delete_many([])
+        assert result == []
+
+    async def test_delete_many_multiple(self, repo):
+        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        user1 = await ctrl.create({"name": "CTRL_DM1", "email": "ctrl_dm1@x.com", "age": 10})
+        user2 = await ctrl.create({"name": "CTRL_DM2", "email": "ctrl_dm2@x.com", "age": 20})
+        results = await ctrl.delete_many([user1, user2])
+        assert len(results) == 2
+        found = await repo.get_by(field="email", value="ctrl_dm1@x.com", unique=True)
+        assert found is None
