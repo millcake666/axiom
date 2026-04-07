@@ -8,10 +8,19 @@ dependencies = [
     "axiom-core",
 ]
 
+[project.optional-dependencies]
+jinja2 = ["jinja2>=3.0"]
+aiosmtplib = ["aiosmtplib>=3.0"]
+all = ["jinja2>=3.0", "aiosmtplib>=3.0"]
+
 [dependency-groups]
 dev = [
+    "aiosmtplib>=3.0",
+    "jinja2>=3.0",
     "mypy>=1.16.0,<2",
     "pytest>=8.0.0,<9",
+    "pytest-asyncio>=0.24.0,<1",
+    "pytest-cov>=4.0.0",
     "ruff>=0.11.13,<1",
 ]
 
@@ -24,3 +33,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/axiom"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
