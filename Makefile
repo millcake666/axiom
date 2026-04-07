@@ -118,7 +118,7 @@ test: ## Run all tests with summary (per-package to avoid cross-package import c
 		fi; \
 		if [ $$skipped -gt 0 ]; then \
 			skipped_details=$$(echo "$$output" | grep "SKIPPED" | sed 's/^[[:space:]]*/    /'); \
-			skipped_tests_list="$$skipped_tests_list\n\033[33m  $$pkg:\033[0m\n$$skipped_details"; \
+			skipped_tests_list="$${skipped_tests_list}\\n  $$pkg:\\n$$skipped_details"; \
 		fi; \
 		[ $$rc -eq 5 ] && continue; \
 		[ $$rc -ne 0 ] && total_failed=$$((total_failed + 1)); \
@@ -154,7 +154,7 @@ test: ## Run all tests with summary (per-package to avoid cross-package import c
 	echo "\033[34m----------------------------------------------------------------\033[0m"; \
 	if [ $$total_skipped -gt 0 ]; then \
 		echo "\033[33mSkipped tests details:\033[0m"; \
-		echo -e "$$skipped_tests_list"; \
+		printf "%b\n" "$$skipped_tests_list"; \
 		echo "\033[34m----------------------------------------------------------------\033[0m"; \
 	fi; \
 	if [ -n "$$failed_packages" ]; then \
