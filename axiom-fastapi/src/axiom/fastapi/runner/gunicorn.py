@@ -1,7 +1,7 @@
 """axiom.fastapi.runner.gunicorn — Gunicorn runner with UvicornWorker."""
 
 try:
-    import uvloop as _uvloop  # type: ignore[import-not-found]  # noqa: F401
+    import uvloop as _uvloop  # noqa: F401
 
     _LOOP = "uvloop"
 except ImportError:
@@ -21,7 +21,7 @@ class GunicornSettings(BaseModel):
 
 
 try:
-    from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped,import-not-found]
+    from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped]
     from uvicorn.workers import UvicornWorker as BaseUvicornWorker
 
     class UvicornWorker(BaseUvicornWorker):
