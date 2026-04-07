@@ -2,8 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from axiom.email.hooks.logging import LoggingHook
 from axiom.email.models import Attachment, EmailMessage, SendResult
 
@@ -28,7 +26,11 @@ class TestLoggingHook:
         hook = LoggingHook()
         msg = _make_message(text="secret body", html="<b>secret</b>")
         logged_messages = []
-        with patch.object(hook._logger, "info", side_effect=lambda tmpl, **kw: logged_messages.append(tmpl)):
+        with patch.object(
+            hook._logger,
+            "info",
+            side_effect=lambda tmpl, **kw: logged_messages.append(tmpl),
+        ):
             hook.before_send(msg)
         # No body content in template
         for tmpl in logged_messages:
@@ -55,7 +57,11 @@ class TestLoggingHook:
         msg = _make_message(text="secret body content", html="<b>secret html</b>")
         logged_templates = []
         # Capture template string only (not kwargs which include metadata)
-        with patch.object(hook._logger, "info", side_effect=lambda t, **kw: logged_templates.append(t)):
+        with patch.object(
+            hook._logger,
+            "info",
+            side_effect=lambda t, **kw: logged_templates.append(t),
+        ):
             hook.before_send(msg)
         # Template string should not contain body content
         for tmpl in logged_templates:

@@ -1,7 +1,6 @@
 """axiom.email.client — Synchronous and asynchronous email clients."""
 
 from axiom.core.logger import get_logger
-
 from axiom.email.interfaces import AsyncMailBackend, MailHook, SyncMailBackend, TemplateRenderer
 from axiom.email.models import EmailMessage, SendResult
 
@@ -41,7 +40,11 @@ class SyncMailClient:
         try:
             result = self._backend.send(message)
         except Exception as exc:  # noqa: BLE001
-            self._logger.error("Unexpected error sending email to {to}: {exc}", to=message.to, exc=exc)
+            self._logger.error(
+                "Unexpected error sending email to {to}: {exc}",
+                to=message.to,
+                exc=exc,
+            )
             result = SendResult(success=False, error=str(exc))
 
         for hook in self._hooks:
@@ -93,7 +96,11 @@ class AsyncMailClient:
         try:
             result = await self._backend.send(message)
         except Exception as exc:  # noqa: BLE001
-            self._logger.error("Unexpected error sending email to {to}: {exc}", to=message.to, exc=exc)
+            self._logger.error(
+                "Unexpected error sending email to {to}: {exc}",
+                to=message.to,
+                exc=exc,
+            )
             result = SendResult(success=False, error=str(exc))
 
         for hook in self._hooks:

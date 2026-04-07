@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from axiom.email.client import AsyncMailClient, SyncMailClient
 from axiom.email.hooks.logging import LoggingHook
 from axiom.email.models import Attachment, EmailMessage

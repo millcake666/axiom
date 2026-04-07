@@ -21,7 +21,7 @@ class GunicornSettings(BaseModel):
 
 
 try:
-    from gunicorn.app.base import BaseApplication  # type: ignore[import-not-found]
+    from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped,import-not-found]
     from uvicorn.workers import UvicornWorker as BaseUvicornWorker
 
     class UvicornWorker(BaseUvicornWorker):

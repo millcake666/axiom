@@ -3,8 +3,6 @@
 import smtplib
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from axiom.email.models import Attachment, EmailMessage
 from axiom.email.providers.yandex.config import YandexSMTPConfig
 from axiom.email.providers.yandex.sync_backend import YandexSyncSMTPBackend

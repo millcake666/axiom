@@ -1,7 +1,6 @@
 """axiom.email.hooks.logging — Logging hook for email sending observability."""
 
 from axiom.core.logger import get_logger
-
 from axiom.email.models import EmailMessage, SendResult
 
 

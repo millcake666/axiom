@@ -1,6 +1,6 @@
 """axiom.email.providers.yandex.config — Yandex SMTP configuration."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -24,6 +24,9 @@ class YandexSMTPConfig:
 
     default_from: str = ""
     """Default sender address. Falls back to username if empty."""
+
+    validate_certs: bool = True
+    """If False, skip TLS certificate validation (for internal/test servers only)."""
 
     def get_from_address(self) -> str:
         """Return the sender address to use when none is specified."""

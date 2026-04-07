@@ -5,7 +5,7 @@ try:
 except ImportError as exc:
     raise ImportError(
         "aiosmtplib is required for YandexAsyncSMTPBackend. "
-        "Install it with: pip install axiom-email[aiosmtplib]"
+        "Install it with: pip install axiom-email[aiosmtplib]",
     ) from exc
 
 from email.mime.application import MIMEApplication
@@ -13,7 +13,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from axiom.core.logger import get_logger
-
 from axiom.email.models import EmailMessage, SendResult
 from axiom.email.providers.yandex.config import YandexSMTPConfig
 
@@ -83,6 +82,7 @@ class YandexAsyncSMTPBackend:
                 password=self._config.password,
                 use_tls=self._config.use_tls,
                 start_tls=not self._config.use_tls,
+                validate_certs=self._config.validate_certs,
                 recipients=all_recipients,
             )
             message_id = mime_msg.get("Message-ID")

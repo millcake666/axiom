@@ -1,7 +1,5 @@
 """Unit tests for axiom.email.models."""
 
-import pytest
-
 from axiom.email.models import Attachment, EmailAddress, EmailMessage, SendResult
 
 

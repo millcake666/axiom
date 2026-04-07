@@ -7,7 +7,7 @@ try:
 except ImportError as exc:
     raise ImportError(
         "jinja2 is required for JinjaTemplateRenderer. "
-        "Install it with: pip install axiom-email[jinja2]"
+        "Install it with: pip install axiom-email[jinja2]",
     ) from exc
 
 from axiom.email.exception import EmailRenderError

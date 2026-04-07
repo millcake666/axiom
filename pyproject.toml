@@ -13,6 +13,10 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+filterwarnings = [
+    "ignore:.*uvicorn.workers.*:DeprecationWarning",
+    "ignore:.*wait_for_logs.*:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 100

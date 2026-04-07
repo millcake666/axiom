@@ -6,7 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from axiom.core.logger import get_logger
-
 from axiom.email.models import EmailMessage, SendResult
 from axiom.email.providers.yandex.config import YandexSMTPConfig
 

@@ -2,10 +2,8 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from axiom.email.client import SyncMailClient
-from axiom.email.models import EmailMessage, SendResult
+from axiom.email.models import EmailMessage
 from axiom.email.testing import FakeMailBackend, InMemoryMailBackend
 
 

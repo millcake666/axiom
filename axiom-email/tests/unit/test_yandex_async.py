@@ -2,11 +2,9 @@
 
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
-from axiom.email.models import Attachment, EmailMessage
-from axiom.email.providers.yandex.config import YandexSMTPConfig
+from axiom.email.models import EmailMessage
 from axiom.email.providers.yandex.async_backend import YandexAsyncSMTPBackend
+from axiom.email.providers.yandex.config import YandexSMTPConfig
 
 
 def _make_config(**kwargs):

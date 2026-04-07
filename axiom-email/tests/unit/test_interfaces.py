@@ -1,10 +1,13 @@
 """Unit tests for axiom.email.interfaces — Protocol satisfaction checks."""
 
-import pytest
-
 from axiom.email.interfaces import AsyncMailBackend, MailHook, SyncMailBackend, TemplateRenderer
 from axiom.email.models import EmailMessage, SendResult
-from axiom.email.testing import AsyncFakeMailBackend, AsyncInMemoryMailBackend, FakeMailBackend, InMemoryMailBackend
+from axiom.email.testing import (
+    AsyncFakeMailBackend,
+    AsyncInMemoryMailBackend,
+    FakeMailBackend,
+    InMemoryMailBackend,
+)
 
 
 class MinimalTemplateRenderer:

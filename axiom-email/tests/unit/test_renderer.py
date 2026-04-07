@@ -24,7 +24,10 @@ class TestJinjaTemplateRenderer:
         assert result == "HELLO"
 
     def test_render_loop(self):
-        result = self.renderer.render("{% for i in items %}{{ i }}{% endfor %}", {"items": [1, 2, 3]})
+        result = self.renderer.render(
+            "{% for i in items %}{{ i }}{% endfor %}",
+            {"items": [1, 2, 3]},
+        )
         assert result == "123"
 
     def test_render_empty_context(self):

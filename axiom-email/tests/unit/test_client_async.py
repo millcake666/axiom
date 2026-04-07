@@ -2,8 +2,6 @@
 
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
-
 from axiom.email.client import AsyncMailClient
 from axiom.email.models import EmailMessage, SendResult
 from axiom.email.testing import AsyncFakeMailBackend, AsyncInMemoryMailBackend

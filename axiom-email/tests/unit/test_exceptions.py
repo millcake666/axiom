@@ -1,9 +1,12 @@
 """Unit tests for axiom.email.exception hierarchy."""
 
-import pytest
-
 from axiom.core.exceptions import BaseError
-from axiom.email.exception import AxiomEmailError, EmailConfigError, EmailRenderError, EmailSendError
+from axiom.email.exception import (
+    AxiomEmailError,
+    EmailConfigError,
+    EmailRenderError,
+    EmailSendError,
+)
 
 
 def test_axiom_email_error_is_base_error():
