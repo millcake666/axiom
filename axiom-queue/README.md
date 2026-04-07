@@ -1,20 +1,50 @@
 # axiom-queue
 
-Axiom message queue integration — producer/consumer abstractions
+`axiom-queue` задуман как пакет для очередей, stream/backends и queue middleware, но в текущем workspace это пока только skeleton.
 
-## Installation
+## Текущий Статус
 
-```bash
-uv add axiom-queue
-```
+Сейчас в коде есть только namespace-заготовки:
 
-## Usage
+- `axiom.queue.rabbitmq`
+- `axiom.queue.redis_stream`
+- `axiom.queue.kafka`
+- `axiom.queue.middleware`
+- `axiom.queue.middleware.logging`
+- `axiom.queue.middleware.tracing`
 
-```python
-from axiom.queue import ...
-```
+Рабочих producer/consumer abstractions, DTO и transport integrations пока нет.
 
-## Planned Components
+## Что Уже Реализовано
 
-- Message producer and consumer interfaces
-- Queue backend adapters
+- структура подпакетов;
+- docstring-и;
+- пустые `exception/` подпакеты.
+
+## Чего Пока Нет
+
+- public API;
+- backend implementations;
+- middleware contract;
+- functional tests и реальные examples.
+
+## Минимальный Пример
+
+Публичный сценарий использования пока отсутствует.
+Текущий пакет имеет смысл рассматривать как заготовку под будущую реализацию.
+
+## Предполагаемая Зона Ответственности
+
+По структуре пакета предполагаются:
+
+- RabbitMQ backend;
+- Redis Streams backend;
+- Kafka backend;
+- logging/tracing middleware.
+
+Но это пока архитектурный каркас, а не готовая функциональность.
+
+## Связанный Код
+
+- `src/axiom/queue/`
+- `tests/__init__.py`

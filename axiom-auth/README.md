@@ -1,33 +1,69 @@
 # axiom-auth
 
-Axiom authentication and authorization — multi-scheme auth support
+`axiom-auth` задуман как пакет для authentication и authorization внутри Axiom, но в текущем репозитории это пока только каркас.
 
-## Installation
+## Текущий Статус
 
-```bash
-uv add axiom-auth
-```
+Сейчас в коде есть только package skeleton:
 
-## Usage
+- `axiom.auth.basic`
+- `axiom.auth.classic`
+- `axiom.auth.token`
+- `axiom.auth.oauth2`
+- `axiom.auth.oauth2.keycloak`
+- `axiom.auth.rbac`
+- `axiom.auth.abac`
+
+Рабочих handlers, DTO, policy engine, middleware или интеграционных адаптеров в этих модулях пока нет.
+
+## Что Уже Реализовано
+
+- namespace пакета и подпакетов;
+- описательные docstring-и;
+- папки `exception/` для будущего расширения.
+
+## Чего Пока Нет
+
+- стабильного public API;
+- рабочих auth схем;
+- тестов на функциональное поведение;
+- примеров использования, которые имели бы практический смысл.
+
+## Минимальный Пример
+
+Публичный сценарий использования пока не стабилизирован.
+На практике сейчас можно только импортировать модули как namespace-заготовки:
 
 ```python
-from axiom.auth import ...
+import axiom.auth
+import axiom.auth.basic
+import axiom.auth.rbac
 ```
 
-## Supported Authentication Schemes
+Это не дает готовой auth-логики и не должно рассматриваться как production usage.
 
-- `basic` — HTTP Basic authentication
-- `email` — Email + password authentication
-- `token` — API token authentication
-- `oauth2` — OAuth2 / OpenID Connect
-- `abac` — Attribute-Based Access Control
-- `rbac` — Role-Based Access Control
+## Предполагаемая Зона Ответственности
 
-## Planned Components
+По структуре пакета видно такой замысел:
 
-- `basic` — HTTP Basic auth handler
-- `email` — Email/password auth handler
-- `token` — API token auth handler
-- `oauth2` — OAuth2 flow implementation
-- `abac` — ABAC policy engine
-- `rbac` — RBAC role management
+- базовая auth (`basic`, `classic`, `token`);
+- OAuth2 / Keycloak;
+- RBAC;
+- ABAC.
+
+Но это именно архитектурный замысел, а не реализованный функционал.
+
+## Как Будет Документироваться Дальше
+
+Когда в пакете появится рабочий код, README стоит расширить секциями:
+
+- public API;
+- конфигурация;
+- интеграция с `axiom-fastapi`;
+- минимальные auth flows;
+- ограничения безопасности.
+
+## Связанный Код
+
+- `src/axiom/auth/`
+- `tests/__init__.py`

@@ -1,37 +1,16 @@
-# Axiom Examples
+# Примеры Axiom
 
-Reference applications demonstrating two primary architectural patterns supported by the Axiom ecosystem.
+Папка `examples/` сейчас содержит не запускаемые приложения, а текстовые наброски двух целевых архитектурных сценариев.
 
-## Patterns
+## Что Здесь Есть
 
-### 1. CRUD — Simple Repository Pattern
+- [`crud/`](./crud/README.md) — упрощенный паттерн `endpoint -> controller -> repository`
+- [`ddd/`](./ddd/README.md) — более богатый паттерн `endpoint -> controller -> use case -> repository`
 
-```
-endpoint → controller → repository
-```
+## Чего Здесь Пока Нет
 
-Best for: straightforward CRUD operations, admin panels, simple APIs.
+- готовых `app.py`;
+- package manifests под запуск;
+- интеграционного кода, который можно выполнить через `uv run`.
 
-See [`crud/`](./crud/) for a complete example.
-
-### 2. DDD — Domain-Driven Design with Use Cases
-
-```
-endpoint → controller → use case → repository
-```
-
-Best for: complex business logic, domain-rich services, multi-aggregate operations.
-
-See [`ddd/`](./ddd/) for a complete example.
-
-## Running Examples
-
-```bash
-# CRUD example
-cd examples/crud
-uv run uvicorn app:app --reload
-
-# DDD example
-cd examples/ddd
-uv run uvicorn app:app --reload
-```
+Поэтому к этой папке сейчас лучше относиться как к архитектурным заметкам, а не как к reference apps.

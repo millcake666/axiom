@@ -1,22 +1,34 @@
-# CRUD Example
+# CRUD Сценарий
 
-Demonstrates the simple `endpoint → controller → repository` pattern using Axiom packages.
+Этот каталог описывает целевой упрощенный сценарий для сервисов, где хватает связки `endpoint -> controller -> repository`.
 
-## Stack
+## Когда Такой Подход Подходит
 
-- `axiom-fastapi` — FastAPI application base
-- `axiom-sqlalchemy` — Repository with SQLAlchemy
-- `axiom-core` — Settings, logging, exceptions
-- `axiom-middleware` — CORS, logging, auth middleware
+- административные API;
+- простые CRUD-сервисы;
+- небольшие internal tools;
+- сервисы, где доменная логика не требует отдельного use case layer.
 
-## Structure
+## Какие Пакеты Реально Подходят Уже Сейчас
 
-```
+- `axiom-fastapi`
+- `axiom-core`
+- `axiom-sqlalchemy`
+
+То, что раньше описывалось как отдельный `axiom-middleware`, сейчас в репозитории фактически покрывается middleware из `axiom-fastapi`.
+
+## Целевая Структура
+
+```text
 crud/
-├── app.py               # FastAPI application entry point
-├── config.py            # App settings (via axiom.core.settings)
-├── models/              # SQLAlchemy ORM models
-├── repositories/        # Data access layer
-├── controllers/         # Route handlers
-└── pyproject.toml
+├── app.py
+├── config.py
+├── models/
+├── repositories/
+└── controllers/
 ```
+
+## Текущий Статус
+
+В этом каталоге пока нет запускаемого example-кода.
+README служит ориентиром по структуре будущего примера, а не рабочим шаблоном.

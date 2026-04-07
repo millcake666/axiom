@@ -1,30 +1,29 @@
-# DDD Example
+# DDD Сценарий
 
-Demonstrates the `endpoint → controller → use case → repository` pattern using Axiom packages.
+Этот каталог описывает целевой паттерн `endpoint -> controller -> use case -> repository`.
 
-## Stack
+## Когда Такой Подход Подходит
 
-- `axiom-fastapi` — FastAPI application base
-- `axiom-sqlalchemy` — Repository with SQLAlchemy
-- `axiom-core` — Settings, logging, exceptions, domain entities
-- `axiom-middleware` — CORS, logging, auth, tracing middleware
-- `axiom-task` — Background tasks via ARQ
-- `axiom-lock` — Distributed locking for aggregate consistency
-- `axiom-audit` — User action audit trail
+- насыщенная доменная логика;
+- несколько агрегатов в одном сценарии;
+- явное разделение application layer и persistence layer;
+- long-running evolution сервиса, где важно не смешивать HTTP и доменную модель.
 
-## Structure
+## Целевая Структура
 
-```
+```text
 ddd/
-├── app.py               # FastAPI application entry point
-├── config.py            # App settings (via axiom.core.settings)
-├── domain/
-│   ├── entities/        # AggregateRoot subclasses (dataclasses)
-│   └── use_cases/       # Business logic orchestration
-├── infrastructure/
-│   ├── models/          # SQLAlchemy ORM models
-│   └── repositories/    # Repository implementations
-├── api/
-│   └── controllers/     # Route handlers (thin, delegate to use cases)
-└── pyproject.toml
+├── app.py
+├── config.py
+├── api/controllers/
+├── domain/entities/
+├── domain/use_cases/
+└── infrastructure/repositories/
 ```
+
+## Текущий Статус
+
+Каталог пока не содержит запускаемого кода.
+Кроме того, в историческом описании сценария упоминались пакеты вроде `axiom-lock`, `axiom-audit` и развитый `axiom-task`, но этих рабочих пакетов в текущем workspace нет.
+
+Поэтому сейчас этот README стоит воспринимать как архитектурное направление, а не как готовый пример на основе существующего кода.

@@ -1,23 +1,40 @@
 # axiom-opensearch
 
-Axiom OpenSearch integration — full-text search and analytics
+`axiom-opensearch` задуман как search/analytics-плагин для OpenSearch, но в текущем коде это пока только package shell.
 
-## Installation
+## Текущий Статус
 
-```bash
-uv add axiom-opensearch
-```
+Сейчас в пакете есть только:
 
-## Usage
+- `axiom.olap.opensearch.__init__`
+- `axiom.olap.opensearch.exception`
 
-```python
-from axiom.opensearch import
+Рабочего клиента, index management слоя и search abstractions нет.
 
-...
-```
+## Что Уже Реализовано
 
-## Planned Components
+- namespace пакета;
+- docstring-и;
+- папка для будущих exceptions.
 
-- OpenSearch client abstractions
-- Index management utilities
-- Search query builder
+## Чего Пока Нет
+
+- public API;
+- конфигурации;
+- query/search utilities;
+- integration tests;
+- примеров использования.
+
+## Минимальный Пример
+
+Публичный сценарий использования пока не стабилизирован.
+На текущем этапе корректнее считать пакет placeholder-ом.
+
+## Предполагаемая Зона Ответственности
+
+По названию и месту в дереве проекта пакет должен покрывать OpenSearch integration для поиска и аналитики, но этот слой пока не реализован.
+
+## Связанный Код
+
+- `src/axiom/olap/opensearch/`
+- `tests/__init__.py`

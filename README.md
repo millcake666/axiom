@@ -1,448 +1,152 @@
 # Axiom
 
-A Python monorepo of composable packages for building production-grade services. All packages share the `axiom.*`
-namespace and are designed to work independently or together.
+Axiom — plugin-based Python-монорепа с набором независимых библиотек под общим namespace `axiom.*`.
+Пакеты можно использовать по отдельности или собирать в более крупную backend/platform-композицию.
 
-**Package manager:** [uv](https://docs.astral.sh/uv/) · **Python:** 3.13+ · **Build system:** Hatchling
+Главная идея проекта сейчас такая:
 
----
+- `axiom-core` дает общее ядро: настройки, ошибки, логирование, context vars, filter DSL и базовые схемы.
+- Остальные пакеты подключаются поверх ядра и решают одну инфраструктурную задачу: HTTP, cache, Redis, email, object storage, OLTP-адаптеры.
+- Единого runtime-registry для "плагинов" в коде нет. Плагинность здесь достигается через отдельные installable packages, общий namespace и общие абстракции.
 
-## Architecture
+## Что Уже Реализовано
 
-```
-axiom/
-├── axiom-core/              # Foundation — config, logger, exception, context, entity
-├── axiom-fastapi/           # FastAPI base — middleware/, rate_limiter/ packages inside
-│   ├── middleware/          #   cors, logging, tracing, auth middleware
-│   └── rate_limiter/        #   rate limiting
-│
-├── axiom-auth/              # Auth — basic, email, api_token, oauth2/keycloak, abac, rbac
-├── axiom-cache/             # Cache abstractions — InMemory + Redis backends
-├── axiom-email/             # Email sending abstractions and backends
-├── axiom-grpc/              # gRPC server and client plugin
-│   └── middleware/          #   logging, tracing middleware
-├── axiom-lock/              # Distributed locking with cascading lock support
-├── axiom-metric/            # Metrics — prometheus, statsd backends
-├── axiom-objectstore/       # Object/file storage — s3, local backends
-│   ├── base/                #   base classes and client factory
-│   ├── abs/                 #   abstract repository interfaces
-│   ├── s3/                  #   S3-compatible storage via aiobotocore
-│   └── local/               #   local disk storage
-├── axiom-queue/             # Message queue — rabbitmq, redis_stream, kafka backends
-│   └── middleware/          #   logging, tracing middleware
-├── axiom-redis/             # Async Redis client and utilities
-├── axiom-serialization/     # Data serialization and validation
-├── axiom-task/              # Async task queue — celery, arq backends
-│   └── middleware/          #   logging, tracing middleware
-├── axiom-tracing/           # Distributed tracing — OpenTelemetry + Jaeger
-├── axiom-vault/             # HashiCorp Vault secrets management
-│
-├── oltp/                    # Transactional data packages
-│   ├── axiom-sqlalchemy/    # SQLAlchemy — base, abs, postgres, sqlite
-│   ├── axiom-beanie/        # Beanie MongoDB ODM — base, abs
-│   ├── axiom-audit/         # User action audit trail
-│   └── axiom-history/       # DB state history and point-in-time reconstruction
-│
-└── olap/                    # Analytical data packages
-    ├── axiom-clickhouse/    # ClickHouse integration
-    └── axiom-opensearch/    # OpenSearch integration
+| Пакет | Import namespace | Статус | Назначение |
+|---|---|---|---|
+| [`axiom-core`](./axiom-core/README.md) | `axiom.core` | рабочий | ядро: settings, logger, exceptions, context, filter, schema |
+| [`axiom-fastapi`](./axiom-fastapi/README.md) | `axiom.fastapi` | рабочий, частично | FastAPI app factory, middleware, handlers, docs routes, runners |
+| [`axiom-cache`](./axiom-cache/README.md) | `axiom.cache` | рабочий | cache-абстракции, in-memory и Redis backends, decorators |
+| [`axiom-redis`](./axiom-redis/README.md) | `axiom.redis` | рабочий | sync/async Redis client wrapper и settings |
+| [`axiom-email`](./axiom-email/README.md) | `axiom.email` | рабочий | email client, hooks, renderer, Yandex SMTP provider, testing backends |
+| [`axiom-objectstore`](./axiom-objectstore/README.md) | `axiom.objectstore` | рабочий | local disk и S3 object store |
+| [`axiom-sqlalchemy`](./oltp/axiom-sqlalchemy/README.md) | `axiom.oltp.sqlalchemy` | рабочий | SQLAlchemy repositories/controllers, filter DSL, middleware |
+| [`axiom-beanie`](./oltp/axiom-beanie/README.md) | `axiom.oltp.beanie` | рабочий | Beanie/PyMongo repositories/controllers для MongoDB |
+| [`axiom-auth`](./axiom-auth/README.md) | `axiom.auth` | заглушка | каркас auth/authorization-пакета без рабочей логики |
+| [`axiom-queue`](./axiom-queue/README.md) | `axiom.queue` | заглушка | каркас очередей и stream/middleware-пакета |
+| [`axiom-task`](./axiom-task/README.md) | `axiom.task` | заглушка | каркас background/scheduled task-пакета |
+| [`axiom-clickhouse`](./olap/axiom-clickhouse/README.md) | `axiom.olap.clickhouse` | заглушка | заготовка OLAP-интеграции |
+| [`axiom-opensearch`](./olap/axiom-opensearch/README.md) | `axiom.olap.opensearch` | заглушка | заготовка search/OLAP-интеграции |
+
+## Архитектура На Высоком Уровне
+
+```text
+consumer application
+    |
+    +-- axiom.fastapi
+    +-- axiom.cache ---- axiom.redis
+    +-- axiom.email
+    +-- axiom.objectstore
+    +-- axiom.oltp.sqlalchemy
+    +-- axiom.oltp.beanie
+            |
+            +-- axiom.core
 ```
 
----
+Ключевые архитектурные принципы:
 
-## Packages
+- Общий namespace. Все пакеты живут под `axiom.*` и собираются как PEP 420 namespace packages.
+- Минимальная связанность. У большинства пакетов зависимость только на `axiom-core` и внешнюю библиотеку своей области.
+- Общий словарь сущностей. Ошибки, фильтры, response schemas и настройки переиспользуются между пакетами.
+- Выбор конкретного backend-а делается на уровне импортов и DI в приложении, а не через скрытую магию.
 
-### Foundation
+Отдельно важно:
 
-| Package         | Description                                                                                                     |
-|-----------------|-----------------------------------------------------------------------------------------------------------------|
-| `axiom-core`    | Foundation for all axiom.* packages. Modules: **config**, **logger**, **exception**, **context**, **entity**   |
-| `axiom-fastapi` | Base for FastAPI applications. Packages: **middleware** (cors, logging, tracing, auth), **rate_limiter**        |
-| `axiom-vault`   | HashiCorp Vault — secrets backend for `axiom.core.config`                                                       |
+- `examples/` сейчас содержит только markdown-описания сценариев. Готовых запускаемых примеров в репозитории пока нет.
+- В `todo.md` есть планы на tracing, metrics, grpc, auth, очереди и другие плагины, но этих рабочих пакетов в текущем workspace нет.
 
-### Data Layer
+## Быстрый Старт
 
-| Package               | Sub-packages             | Description                                                      |
-|-----------------------|--------------------------|------------------------------------------------------------------|
-| `axiom-redis`         | —                        | Async Redis client and utilities                                 |
-| `axiom-cache`         | `inmemory`, `redis`      | Cache abstractions — `InMemoryCache`, `RedisCache` backends      |
-| `axiom-objectstore`   | `base`, `abs`, `s3`, `local` | Object and file storage — S3-compatible and local disk       |
-
-### OLTP — Transactional (`oltp/`)
-
-| Package            | Sub-packages                        | Description                                                     |
-|--------------------|-------------------------------------|-----------------------------------------------------------------|
-| `axiom-sqlalchemy` | `base`, `abs`, `postgres`, `sqlite` | SQLAlchemy ORM — declarative models, mixins, repository pattern |
-| `axiom-beanie`     | `base`, `abs`                       | Beanie MongoDB ODM — document models, repositories              |
-| `axiom-audit`      | —                                   | User action audit trail                                         |
-| `axiom-history`    | —                                   | Full history tracking and point-in-time reconstruction          |
-
-### OLAP — Analytical (`olap/`)
-
-| Package            | Description                                                      |
-|--------------------|------------------------------------------------------------------|
-| `axiom-clickhouse` | ClickHouse integration for analytical queries and data ingestion |
-| `axiom-opensearch` | OpenSearch integration for full-text search and analytics        |
-
-### Messaging & Tasks
-
-| Package       | Backends                            | Description                                 |
-|---------------|-------------------------------------|---------------------------------------------|
-| `axiom-task`  | `celery`, `arq`                     | Delayed and scheduled async task queue      |
-| `axiom-queue` | `rabbitmq`, `redis_stream`, `kafka` | Event/message queue producer-consumer       |
-| `axiom-email` | —                                   | Email sending with multiple backend support |
-
-### Auth & Security
-
-| Package      | Sub-packages                                                      | Description                                     |
-|--------------|-------------------------------------------------------------------|-------------------------------------------------|
-| `axiom-auth` | `basic`, `email`, `api_token`, `oauth2/keycloak`, `abac`, `rbac` | Multi-scheme auth and access control            |
-| `axiom-lock` | —                                                                 | Distributed locking with cascading lock support |
-
-### Observability
-
-| Package         | Sub-packages           | Description                                    |
-|-----------------|------------------------|------------------------------------------------|
-| `axiom-metric`  | `prometheus`, `statsd` | Application metrics collection                 |
-| `axiom-tracing` | —                      | Distributed tracing via OpenTelemetry + Jaeger |
-
-### Infrastructure
-
-| Package               | Description                                        |
-|-----------------------|----------------------------------------------------|
-| `axiom-serialization` | Data serialization, validation, and transformation |
-| `axiom-grpc`          | gRPC server and client plugin                      |
-
----
-
-## Architectural Patterns
-
-Axiom supports two primary patterns. See [`examples/`](./examples/) for runnable reference applications.
-
-### 1. CRUD — Simple Repository Pattern
-
-```
-endpoint → controller → repository
-```
-
-Best for: straightforward CRUD, admin APIs, simple microservices.
-
-### 2. DDD — Domain-Driven Design
-
-```
-endpoint → controller → use case → repository
-```
-
-Best for: complex business logic, domain-rich services, multi-aggregate operations.
-
----
-
-## Business Layer
-
-Axiom supports two approaches for the business/domain layer:
-
-### 1. Dataclass Entities (framework-agnostic)
-
-```python
-from axiom.core.entity import AggregateRoot
-from dataclasses import dataclass
-
-
-@dataclass
-class Order(AggregateRoot):
-    customer_id: str
-    total: float
-```
-
-Persist with `axiom-sqlalchemy` or `axiom-beanie` without coupling domain to ORM.
-
-### 2. ORM Model Entities
-
-```python
-# SQLAlchemy (oltp/axiom-sqlalchemy)
-from axiom.oltp.sqlalchemy.base import Base
-
-class OrderModel(Base):
-    __tablename__ = "order"
-    ...
-
-# Beanie (oltp/axiom-beanie)
-from axiom.oltp.beanie.base import BaseDocument
-
-class OrderDocument(BaseDocument):
-    ...
-```
-
----
-
-## axiom-core Modules
-
-```python
-# Exceptions
-from axiom.core.exception import AxiomError, NotFoundError, ValidationError
-
-# Entities (dataclass base)
-from axiom.core.entity import Entity, UUIDEntity, AggregateRoot
-
-# Context (per-request ContextVars)
-from axiom.core.context import request_id, user_id, trace_id, tenant_id
-
-# Logging
-from axiom.core.logger import get_logger, configure_logging
-
-# Settings / Config
-from axiom.core.config import BaseSettings
-```
-
----
-
-## axiom-core.config + axiom-vault
-
-```python
-from axiom.core.config import BaseSettings
-from axiom.vault import VaultSettings
-
-
-class AppSettings(BaseSettings):
-    database_url: str
-    secret_key: str
-
-
-# With Vault as secrets backend
-settings = AppSettings.from_vault(VaultSettings(addr="http://vault:8200"))
-```
-
----
-
-## Caching
-
-```python
-from axiom.cache.inmemory import InMemoryCache
-from axiom.cache.redis import RedisCache
-from axiom.redis import create_redis_client
-
-cache = InMemoryCache()                                    # dev/test
-cache = RedisCache(create_redis_client("redis://..."))     # production
-
-await cache.set("key", "value", ttl=60)
-value = await cache.get("key")
-```
-
----
-
-## Object Storage
-
-```python
-from axiom.objectstore.s3 import S3ObjectStore
-from axiom.objectstore.local import LocalObjectStore
-
-store = S3ObjectStore(bucket="my-bucket", region="us-east-1")
-store = LocalObjectStore(root="/var/data")                 # dev/test
-
-await store.put("uploads/file.pdf", data)
-stream = await store.get("uploads/file.pdf")
-```
-
----
-
-## Metrics
-
-```python
-from axiom.metric.prometheus import PrometheusMetric
-from axiom.metric.statsd import StatsDMetric
-```
-
----
-
-## Tracing
-
-```python
-from axiom.tracing import setup_tracing, get_tracer
-
-setup_tracing(service_name="my-service", jaeger_host="jaeger:6831")
-tracer = get_tracer(__name__)
-
-with tracer.start_as_current_span("operation"):
-    ...
-```
-
----
-
-## Auth
-
-```python
-from axiom.auth.basic import BasicAuthBackend
-from axiom.auth.email import EmailPasswordBackend
-from axiom.auth.api_token import ApiTokenBackend
-from axiom.auth.oauth2 import OAuth2Backend
-from axiom.auth.oauth2.keycloak import KeycloakBackend
-from axiom.auth.abac import AbacPolicy
-from axiom.auth.rbac import RbacPolicy
-```
-
----
-
-## Installation
+Минимальная композиция для HTTP-сервиса на SQLite:
 
 ```bash
-# Foundation
-uv add axiom-core
-
-# FastAPI applications
-uv add axiom-fastapi
-
-# With SQLAlchemy
-uv add axiom-sqlalchemy
-
-# With Redis + caching
-uv add axiom-redis axiom-cache
-
-# Observability
-uv add axiom-metric axiom-tracing
-
-# Object storage
-uv add axiom-objectstore
-
-# Secrets management
-uv add axiom-vault
+uv add axiom-core axiom-fastapi axiom-sqlalchemy[sqlite]
 ```
 
----
+```python
+from axiom.fastapi.app import AppConfig, create_app
+from axiom.fastapi.middleware.logging import RequestLoggingMiddleware
 
-## Development
-
-```bash
-git clone <repo>
-uv sync --all-packages --all-groups
-
-make lint            # ruff check
-make format          # ruff format
-make check-types     # mypy
-uv run pytest        # tests
-make check-precommit # all pre-commit hooks
+app = create_app(
+    AppConfig(
+        title="Users API",
+        version="0.1.0",
+        description="Минимальный сервис на базе Axiom",
+    ),
+)
+app.add_middleware(RequestLoggingMiddleware)
 ```
 
----
+Если нужен самый маленький пример без HTTP, начните с `axiom-core` или `axiom-cache`:
 
-## CI / CD
+```python
+from axiom.cache.inmemory import AsyncInMemoryCache
 
-| Workflow        | Trigger                      | Jobs                                                       |
-|-----------------|------------------------------|------------------------------------------------------------|
-| `ci.yml`        | Push/PR to `main`            | Pre-commit hooks → Tests (Python 3.13) in sequence         |
-| `auto-tag.yml`  | Push to `main`               | Read version from each `pyproject.toml`, create tag if new |
-| `release.yml`   | Push tag `axiom-*-v*.*.*`    | Build package → GitHub Release                             |
-
-Tags are per-package: `axiom-core-v1.0.0`, `axiom-sqlalchemy-v0.2.1`, etc.
-
----
-
-## Workspace
-
-```toml
-[tool.uv.workspace]
-members = ["axiom-*", "oltp/axiom-*", "olap/axiom-*"]
+cache = AsyncInMemoryCache()
+await cache.set("health", {"ok": True}, ttl=30)
+value = await cache.get("health")
 ```
 
----
+Более прикладные сценарии вынесены в отдельные документы:
 
-## Contributing
+- [`docs/quickstart.md`](./docs/quickstart.md)
+- [`docs/architecture.md`](./docs/architecture.md)
+- [`docs/plugins.md`](./docs/plugins.md)
+- [`docs/development.md`](./docs/development.md)
 
-```bash
-# Scaffold a new package
-mkdir -p axiom-mypkg/src/axiom/mypkg
-echo '"""axiom.mypkg — description."""' > axiom-mypkg/src/axiom/mypkg/__init__.py
-# Add pyproject.toml — workspace picks it up via axiom-* glob
-```
+## Как Устроено Расширение Через Пакеты
 
----
+Типовой путь расширения выглядит так:
 
-## Roadmap
+1. Новый пакет добавляется как отдельный workspace member со своим `pyproject.toml`.
+2. Код публикуется в `src/axiom/...` под общим namespace.
+3. Пакет либо переиспользует абстракции `axiom-core`, либо вводит свои локальные протоколы/ABC.
+4. README пакета документирует только реально существующий API и ограничения.
+5. Тесты живут внутри самого пакета, а не в общем корне.
 
-### Core
+Это означает, что Axiom ближе к "набору совместимых инфраструктурных библиотек", чем к монолитному framework.
 
-- [ ] `axiom.core.entity` — base entity classes (`Entity`, `UUIDEntity`, `AggregateRoot`, `ValueObject`)
-- [ ] `axiom.core.exception` — base exception hierarchy (`AxiomError`, `NotFoundError`, `ValidationError`, `ConflictError`)
-- [ ] `axiom.core.context` — async context propagation via `contextvars` (request id, user id, trace id, tenant id)
-- [ ] `axiom.core.logger` — structured JSON logging with context injection
-- [ ] `axiom.core.config` — `BaseSettings` with env-file and Vault backend support
+## Текущее Состояние Проекта
 
-### FastAPI
+На текущий момент проект уже полезен для:
 
-- [ ] `axiom.fastapi.middleware.cors` — CORS middleware configuration
-- [ ] `axiom.fastapi.middleware.logging` — structured request/response logging
-- [ ] `axiom.fastapi.middleware.tracing` — OpenTelemetry span injection per request
-- [ ] `axiom.fastapi.middleware.auth` — pluggable authentication middleware
-- [ ] `axiom.fastapi.rate_limiter` — token-bucket / sliding-window rate limiting
+- базового FastAPI-сервиса с единым error handling и request logging;
+- кэширования через in-memory и Redis;
+- отправки email с hook/template abstraction;
+- работы с local disk и S3-compatible object store;
+- CRUD и filter-driven data access через SQLAlchemy или Beanie.
 
-### Data — OLTP
+Что еще не стабилизировано:
 
-- [ ] `axiom.oltp.sqlalchemy.base` — declarative base, session factory, engine factory
-- [ ] `axiom.oltp.sqlalchemy.abs` — abstract repository interface (`AbstractRepository[T]`)
-- [ ] `axiom.oltp.sqlalchemy.postgres` — PostgreSQL-specific session and dialect config
-- [ ] `axiom.oltp.sqlalchemy.sqlite` — SQLite session (testing / local dev)
-- [ ] `axiom.oltp.beanie.base` — Beanie `BaseDocument` with common fields
-- [ ] `axiom.oltp.beanie.abs` — abstract MongoDB repository interface
-- [ ] `axiom.oltp.audit` — automatic audit trail on entity mutations
-- [ ] `axiom.oltp.history` — point-in-time reconstruction from change log
+- `axiom-auth`, `axiom-queue`, `axiom-task`, `axiom-clickhouse`, `axiom-opensearch` пока являются в основном namespace-заглушками;
+- `axiom-fastapi.rate_limiter` пока не реализован;
+- у `axiom-sqlalchemy` dialect-specific upsert реализован в `sqlite` и `postgres`, а базовый `AsyncSQLAlchemyRepository`/`SyncSQLAlchemyRepository` не должен рассматриваться как полноценный upsert backend;
+- часть архитектурного замысла из `.planning/codebase` и `todo.md` опережает текущее состояние кода.
 
-### Data — OLAP
+## Навигация По Документации
 
-- [ ] `axiom.olap.clickhouse.base` — async ClickHouse client factory
-- [ ] `axiom.olap.clickhouse.abs` — abstract query/ingest repository
-- [ ] `axiom.olap.opensearch.base` — async OpenSearch client factory
-- [ ] `axiom.olap.opensearch.abs` — abstract search/index repository
+Общая документация:
 
-### Cache & Storage
+- [`docs/quickstart.md`](./docs/quickstart.md)
+- [`docs/architecture.md`](./docs/architecture.md)
+- [`docs/plugins.md`](./docs/plugins.md)
+- [`docs/development.md`](./docs/development.md)
 
-- [ ] `axiom.cache.base` — `BaseCache` abstract interface
-- [ ] `axiom.cache.inmemory` — `InMemoryCache` (TTL, LRU eviction)
-- [ ] `axiom.cache.redis` — `RedisCache` backed by `axiom-redis`
-- [ ] `axiom.objectstore.base` — `BaseObjectStore` abstract interface
-- [ ] `axiom.objectstore.abs` — abstract file repository (`put`, `get`, `delete`, `list`)
-- [ ] `axiom.objectstore.s3` — S3-compatible implementation via `aiobotocore`
-- [ ] `axiom.objectstore.local` — local disk implementation for dev/test
+Документация по пакетам:
 
-### Messaging & Tasks
+- [`axiom-core`](./axiom-core/README.md)
+- [`axiom-fastapi`](./axiom-fastapi/README.md)
+- [`axiom-cache`](./axiom-cache/README.md)
+- [`axiom-redis`](./axiom-redis/README.md)
+- [`axiom-email`](./axiom-email/README.md)
+- [`axiom-objectstore`](./axiom-objectstore/README.md)
+- [`axiom-sqlalchemy`](./oltp/axiom-sqlalchemy/README.md)
+- [`axiom-beanie`](./oltp/axiom-beanie/README.md)
+- [`axiom-auth`](./axiom-auth/README.md)
+- [`axiom-queue`](./axiom-queue/README.md)
+- [`axiom-task`](./axiom-task/README.md)
+- [`axiom-clickhouse`](./olap/axiom-clickhouse/README.md)
+- [`axiom-opensearch`](./olap/axiom-opensearch/README.md)
 
-- [ ] `axiom.queue.rabbitmq` — RabbitMQ producer/consumer via `aio-pika`
-- [ ] `axiom.queue.redis_stream` — Redis Streams producer/consumer
-- [ ] `axiom.queue.kafka` — Kafka producer/consumer via `aiokafka`
-- [ ] `axiom.queue.middleware.logging` — structured message logging middleware
-- [ ] `axiom.queue.middleware.tracing` — trace context propagation in messages
-- [ ] `axiom.task.celery` — Celery worker integration with axiom context
-- [ ] `axiom.task.arq` — arq async task queue integration
-- [ ] `axiom.task.middleware.logging` — task execution logging
-- [ ] `axiom.task.middleware.tracing` — trace span per task execution
+Материалы по архитектурным сценариям:
 
-### Auth & Security
-
-- [ ] `axiom.auth.basic` — HTTP Basic authentication backend
-- [ ] `axiom.auth.email` — email + password authentication
-- [ ] `axiom.auth.api_token` — static/rotating API token authentication
-- [ ] `axiom.auth.oauth2` — OAuth2 / OIDC base (authorization code, client credentials)
-- [ ] `axiom.auth.oauth2.keycloak` — Keycloak OIDC integration
-- [ ] `axiom.auth.rbac` — role-based access control
-- [ ] `axiom.auth.abac` — attribute-based access control
-- [ ] `axiom.lock` — distributed lock abstraction with Redis backend
-
-### Observability
-
-- [ ] `axiom.metric.prometheus` — Prometheus metrics exposition (counters, histograms, gauges)
-- [ ] `axiom.metric.statsd` — StatsD metrics client
-- [ ] `axiom.tracing` — OpenTelemetry tracer setup with Jaeger exporter
-- [ ] `axiom.grpc.middleware.logging` — gRPC interceptor for structured logging
-- [ ] `axiom.grpc.middleware.tracing` — gRPC interceptor for trace propagation
-
-### Infrastructure
-
-- [ ] `axiom.serialization` — JSON/MessagePack serialization with pydantic support
-- [ ] `axiom.vault` — HashiCorp Vault client for secrets and dynamic credentials
-- [ ] `axiom.email` — email sending via SMTP / SendGrid / SES backends
-
-### Developer Experience
-
-- [ ] Per-package example applications in `examples/`
-- [ ] CRUD example: FastAPI + SQLAlchemy + Redis cache
-- [ ] DDD example: FastAPI + use cases + SQLAlchemy + domain events
-- [ ] Docker Compose dev environment (Postgres, Redis, RabbitMQ, Jaeger, Vault)
-- [ ] Package scaffolding script (`make new-package PKG=axiom-mypkg`)
+- [`examples/README.md`](./examples/README.md)
