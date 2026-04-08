@@ -55,6 +55,10 @@ class AsyncPostgresRepository[
         select_stmt = self._query().from_statement(stmt)
         return await self._one_or_none(select_stmt)  # type: ignore[return-value, arg-type]
 
+    async def create_or_update(self, model: ModelType) -> ModelType:
+        attrs = {k: v for k, v in self._model_to_dict(model).items() if v is not None}
+        return await self.create_or_update_by(attributes=attrs)
+
     async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         if not models:
             return []

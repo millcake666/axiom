@@ -115,32 +115,6 @@ class AsyncSQLAlchemyRepository[
             unique=unique,
         )
 
-    async def create_or_update_by(
-        self,
-        attributes: dict[str, Any],
-        update_fields: list[str] | None = None,
-    ) -> ModelType:
-        """Base implementation: fallback to create if no conflict columns."""
-        for f, v in attributes.items():
-            self._validate_params(field=f, value=v)
-        conflict_cols = self._get_conflict_fields()
-        if not conflict_cols:
-            return await self.create(attributes)
-        # Base fallback: try to find existing, update or create
-        return await self.create(attributes)
-
-    async def create_or_update(self, model: ModelType) -> ModelType:
-        attrs = {k: v for k, v in self._model_to_dict(model).items() if v is not None}
-        return await self.create_or_update_by(attributes=attrs)
-
-    async def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
-        if not models:
-            return []
-        results = []
-        for m in models:
-            results.append(await self.create_or_update(m))
-        return results
-
     async def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         if not models:
             return []

@@ -38,8 +38,9 @@ class AsyncBaseController[ModelType](ABC):
     ) -> Any:
         raise NotImplementedError
 
-    def transactional(function):  # type: ignore[no-untyped-def]
-        async def wrapper(self, *args: Any, **kwargs: Any) -> Any:
+    @staticmethod
+    def transactional(function: Callable[..., Any]) -> Callable[..., Any]:
+        async def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
             return await self.processing_transaction(function, *args, **kwargs)
 
         return wrapper
@@ -300,31 +301,6 @@ class AsyncBaseController[ModelType](ABC):
                 f"{self.model_class.__name__} with uuid: {uuid} not found",
             )
         return result  # type: ignore[return-value]
-
-    @transactional
-    async def create_or_update_by(
-        self,
-        attributes: dict[str, Any],
-        update_fields: list[str] | None = None,
-    ) -> ModelType:
-        for f in attributes:
-            if f in self.exclude_fields:
-                raise UnprocessableError(f"Field {f} is prohibited")
-        result = await self.repository.create_or_update_by(
-            attributes=attributes,
-            update_fields=update_fields,
-        )
-        if result is None:
-            raise NotFoundError("Failed to insert or update")
-        return result
-
-    @transactional
-    async def create_or_update(self, model: ModelType) -> ModelType:
-        return await self.repository.create_or_update(model=model)
-
-    @transactional
-    async def create_or_update_many(self, models: Sequence) -> list[ModelType]:
-        return await self.repository.create_or_update_many(models=models)
 
     @transactional
     async def update_many(self, models: Sequence) -> list[ModelType]:

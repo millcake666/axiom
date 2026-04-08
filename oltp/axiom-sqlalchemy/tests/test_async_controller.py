@@ -8,7 +8,7 @@ from axiom.core.exceptions.http import NotFoundError, UnprocessableError
 from axiom.core.filter.expr import FilterParam, FilterRequest
 from axiom.core.filter.type import QueryOperator
 from axiom.core.schema.response import CountResponse, PaginationResponse
-from axiom.oltp.sqlalchemy.base.controller.async_ import AsyncSQLAlchemyController
+from axiom.oltp.sqlalchemy.sqlite.controller.async_ import AsyncSQLiteController
 from axiom.oltp.sqlalchemy.sqlite.repository.async_ import AsyncSQLiteRepository
 from tests.fixtures.models import UserModel
 
@@ -26,7 +26,7 @@ def repo(async_session):
 
 @pytest.fixture
 def controller(repo):
-    return AsyncSQLAlchemyController(
+    return AsyncSQLiteController(
         model=UserModel,
         repository=repo,
         exclude_fields=["email"],
@@ -108,7 +108,7 @@ class TestAsyncController:
         assert attrs == {"name": "H1", "email": "h1@x.com", "age": 80}
 
     async def test_repr(self, controller):
-        assert "AsyncSQLAlchemyController" in repr(controller)
+        assert "AsyncSQLiteController" in repr(controller)
 
     async def test_get_by_returns_pagination(self, controller):
         await controller.create({"name": "I1", "email": "i1@x.com", "age": 11})
@@ -154,7 +154,7 @@ class TestAsyncController:
             )
 
     async def test_create_or_update_by(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user = await ctrl.create_or_update_by(
             attributes={"name": "L1ctrl", "email": "l1ctrl@x.com", "age": 15},
         )
@@ -371,14 +371,14 @@ class TestAsyncController:
         assert result.age == 100
 
     async def test_create_or_update_creates_new(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         model = UserModel(name="CTRL_COU_New", email="ctrl_cou_new@x.com", age=11)
         result = await ctrl.create_or_update(model)
         assert result is not None
         assert result.name == "CTRL_COU_New"
 
     async def test_create_or_update_updates_existing(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         await ctrl.create_or_update_by(
             attributes={"name": "CTRL_COU_E", "email": "ctrl_cou_e@x.com", "age": 22},
         )
@@ -393,7 +393,7 @@ class TestAsyncController:
         assert result == []
 
     async def test_create_or_update_many_all_new(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         models = [
             UserModel(name="CTRL_COUM_N1", email="ctrl_coum_n1@x.com", age=1),
             UserModel(name="CTRL_COUM_N2", email="ctrl_coum_n2@x.com", age=2),
@@ -407,7 +407,7 @@ class TestAsyncController:
         assert result == []
 
     async def test_update_many_multiple(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user1 = await ctrl.create({"name": "CTRL_UM1", "email": "ctrl_um1@x.com", "age": 10})
         user2 = await ctrl.create({"name": "CTRL_UM2", "email": "ctrl_um2@x.com", "age": 20})
         user1.age = 88
@@ -422,7 +422,7 @@ class TestAsyncController:
         assert result == []
 
     async def test_delete_many_multiple(self, repo):
-        ctrl = AsyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = AsyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user1 = await ctrl.create({"name": "CTRL_DM1", "email": "ctrl_dm1@x.com", "age": 10})
         user2 = await ctrl.create({"name": "CTRL_DM2", "email": "ctrl_dm2@x.com", "age": 20})
         results = await ctrl.delete_many([user1, user2])

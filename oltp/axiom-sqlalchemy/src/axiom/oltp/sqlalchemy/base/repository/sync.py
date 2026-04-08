@@ -112,30 +112,6 @@ class SyncSQLAlchemyRepository[
             unique=unique,
         )
 
-    def create_or_update_by(
-        self,
-        attributes: dict[str, Any],
-        update_fields: list[str] | None = None,
-    ) -> ModelType:
-        for f, v in attributes.items():
-            self._validate_params(field=f, value=v)
-        conflict_cols = self._get_conflict_fields()
-        if not conflict_cols:
-            return self.create(attributes)
-        return self.create(attributes)
-
-    def create_or_update(self, model: ModelType) -> ModelType:
-        attrs = {k: v for k, v in self._model_to_dict(model).items() if v is not None}
-        return self.create_or_update_by(attributes=attrs)
-
-    def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
-        if not models:
-            return []
-        results = []
-        for m in models:
-            results.append(self.create_or_update(m))
-        return results
-
     def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         if not models:
             return []

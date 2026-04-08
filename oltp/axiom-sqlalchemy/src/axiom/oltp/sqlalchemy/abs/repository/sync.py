@@ -77,22 +77,6 @@ class SyncBaseRepository[ModelType, SessionType, QueryType](ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def create_or_update_by(
-        self,
-        attributes: dict[str, Any],
-        update_fields: list[str] | None = None,
-    ) -> ModelType:
-        raise NotImplementedError
-
-    @abstractmethod
-    def create_or_update(self, model: ModelType) -> ModelType:
-        raise NotImplementedError
-
-    @abstractmethod
-    def create_or_update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
-        raise NotImplementedError
-
-    @abstractmethod
     def update_many(self, models: Sequence[ModelType]) -> list[ModelType]:
         raise NotImplementedError
 

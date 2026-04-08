@@ -8,7 +8,7 @@ from axiom.core.exceptions.http import NotFoundError, UnprocessableError
 from axiom.core.filter.expr import FilterParam, FilterRequest
 from axiom.core.filter.type import QueryOperator
 from axiom.core.schema.response import CountResponse, PaginationResponse
-from axiom.oltp.sqlalchemy.base.controller.sync import SyncSQLAlchemyController
+from axiom.oltp.sqlalchemy.sqlite.controller.sync import SyncSQLiteController
 from axiom.oltp.sqlalchemy.sqlite.repository.sync import SyncSQLiteRepository
 from tests.fixtures.models import UserModel
 
@@ -26,7 +26,7 @@ def repo(sync_session):
 
 @pytest.fixture
 def controller(repo):
-    return SyncSQLAlchemyController(
+    return SyncSQLiteController(
         model=UserModel,
         repository=repo,
         exclude_fields=["email"],
@@ -107,7 +107,7 @@ class TestSyncController:
         assert attrs == {"name": "H1", "email": "h1@x.com", "age": 80}
 
     def test_repr(self, controller):
-        assert "SyncSQLAlchemyController" in repr(controller)
+        assert "SyncSQLiteController" in repr(controller)
 
     def test_get_by_returns_pagination(self, controller):
         controller.create({"name": "I1", "email": "i1@x.com", "age": 11})
@@ -152,7 +152,7 @@ class TestSyncController:
             )
 
     def test_create_or_update_by(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user = ctrl.create_or_update_by(
             attributes={"name": "L1ctrl", "email": "l1ctrl@x.com", "age": 15},
         )
@@ -364,14 +364,14 @@ class TestSyncController:
         assert result.age == 100
 
     def test_create_or_update_creates_new(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         model = UserModel(name="SYNC_CTRL_COU_New", email="sync_ctrl_cou_new@x.com", age=11)
         result = ctrl.create_or_update(model)
         assert result is not None
         assert result.name == "SYNC_CTRL_COU_New"
 
     def test_create_or_update_updates_existing(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         ctrl.create_or_update_by(
             attributes={"name": "SYNC_CTRL_COU_E", "email": "sync_ctrl_cou_e@x.com", "age": 22},
         )
@@ -386,7 +386,7 @@ class TestSyncController:
         assert result == []
 
     def test_create_or_update_many_all_new(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         models = [
             UserModel(name="SYNC_CTRL_COUM_N1", email="sync_ctrl_coum_n1@x.com", age=1),
             UserModel(name="SYNC_CTRL_COUM_N2", email="sync_ctrl_coum_n2@x.com", age=2),
@@ -400,7 +400,7 @@ class TestSyncController:
         assert result == []
 
     def test_update_many_multiple(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user1 = ctrl.create({"name": "SYNC_CTRL_UM1", "email": "sync_ctrl_um1@x.com", "age": 10})
         user2 = ctrl.create({"name": "SYNC_CTRL_UM2", "email": "sync_ctrl_um2@x.com", "age": 20})
         user1.age = 88
@@ -415,7 +415,7 @@ class TestSyncController:
         assert result == []
 
     def test_delete_many_multiple(self, repo):
-        ctrl = SyncSQLAlchemyController(model=UserModel, repository=repo, exclude_fields=[])
+        ctrl = SyncSQLiteController(model=UserModel, repository=repo, exclude_fields=[])
         user1 = ctrl.create({"name": "SYNC_CTRL_DM1", "email": "sync_ctrl_dm1@x.com", "age": 10})
         user2 = ctrl.create({"name": "SYNC_CTRL_DM2", "email": "sync_ctrl_dm2@x.com", "age": 20})
         results = ctrl.delete_many([user1, user2])
