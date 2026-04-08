@@ -13,7 +13,7 @@ def register_all_handlers(app: object, *, use_logger: bool = True) -> None:
 
     Args:
         app: FastAPI application instance.
-        use_logger: Whether to log errors via structlog.
+        use_logger: Whether to log errors via loguru.
     """
     from fastapi import FastAPI
 

@@ -1,14 +1,14 @@
 """axiom.oltp.sqlalchemy.exception_handler.integrity — SQLAlchemy IntegrityError handler."""
 
-import structlog
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
 from axiom.core.exceptions.base import ErrorDetail
+from axiom.core.logger import get_logger
 from sqlalchemy.exc import IntegrityError
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 _PGCODE_MAP: dict[str, tuple[int, str, str]] = {
     "23505": (409, "db.unique_violation", "A record with this value already exists."),
@@ -46,16 +46,16 @@ def register_integrity_handler(app: FastAPI, *, use_logger: bool = True) -> None
 
     Args:
         app: FastAPI application instance.
-        use_logger: Whether to log errors via structlog.
+        use_logger: Whether to log errors via loguru.
     """
 
     async def handler(request: Request, exc: IntegrityError) -> JSONResponse:
         status_code, code, message = _resolve_integrity_error(exc)
         if use_logger:
             if status_code >= 500:
-                logger.exception("db.integrity_error", exc_info=exc)
+                logger.opt(exception=exc).error("db.integrity_error")
             else:
-                logger.info("db.integrity_error", code=code, status_code=status_code)
+                logger.bind(code=code, status_code=status_code).info("db.integrity_error")
         detail = ErrorDetail(code=code, message=message, details={})
         return JSONResponse(status_code=status_code, content=detail.model_dump())
 

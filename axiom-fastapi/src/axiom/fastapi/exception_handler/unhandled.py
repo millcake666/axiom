@@ -1,13 +1,13 @@
 """axiom.fastapi.exception_handler.unhandled — Catch-all exception handler."""
 
-import structlog
 from starlette.requests import Request
 
 from axiom.core.exceptions.base import ErrorDetail
+from axiom.core.logger import get_logger
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 def register_unhandled_handler(app: FastAPI, *, use_logger: bool = True) -> None:
@@ -15,12 +15,12 @@ def register_unhandled_handler(app: FastAPI, *, use_logger: bool = True) -> None
 
     Args:
         app: FastAPI application instance.
-        use_logger: Whether to log errors via structlog.
+        use_logger: Whether to log errors via loguru.
     """
 
     async def handler(request: Request, exc: Exception) -> JSONResponse:
         if use_logger:
-            logger.exception("unhandled_exception", exc_info=exc)
+            logger.opt(exception=exc).error("unhandled_exception")
         detail = ErrorDetail(
             code="internal_error",
             message="An unexpected error occurred.",

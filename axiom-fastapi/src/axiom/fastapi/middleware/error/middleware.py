@@ -3,11 +3,10 @@
 import json
 from typing import Any
 
-import structlog
-
 from axiom.core.exceptions.base import ErrorDetail
+from axiom.core.logger import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class ErrorMiddleware:
@@ -36,7 +35,7 @@ class ErrorMiddleware:
         try:
             await self.app(scope, receive, send)
         except Exception as exc:
-            logger.exception("unhandled_exception", exc_info=exc)
+            logger.opt(exception=exc).error("unhandled_exception")
             detail = ErrorDetail(
                 code="internal_error",
                 message="An unexpected error occurred.",

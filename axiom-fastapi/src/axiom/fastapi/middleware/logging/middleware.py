@@ -4,11 +4,10 @@ import time
 import uuid
 from typing import Any
 
-import structlog
-
 from axiom.core.context.request import REQUEST_CONTEXT, set_request_context
+from axiom.core.logger import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 _DEFAULT_REQUEST_ID_HEADER = "X-Request-ID"
 
@@ -17,7 +16,7 @@ class RequestLoggingMiddleware:
     """Raw ASGI middleware that logs incoming requests and outgoing responses.
 
     Generates or forwards a request ID, sets REQUEST_CONTEXT, and logs
-    method/path/status/timing via structlog.
+    method/path/status/timing via loguru.
     """
 
     def __init__(
@@ -69,14 +68,13 @@ class RequestLoggingMiddleware:
         path = scope.get("path", "")
         query = scope.get("query_string", b"").decode()
 
-        logger.info(
-            "request.incoming",
+        logger.bind(
             method=method,
             path=path,
             query=query,
             ip=ip,
             request_id=request_id,
-        )
+        ).info("request.incoming")
 
         status_code = 0
         response_size = 0
@@ -98,13 +96,12 @@ class RequestLoggingMiddleware:
             await self.app(scope, receive, send_wrapper)
         finally:
             elapsed = time.perf_counter() - start
-            logger.info(
-                "request.outgoing",
+            logger.bind(
                 method=method,
                 path=path,
                 status_code=status_code,
                 processing_time=round(elapsed, 4),
                 response_size=response_size,
                 request_id=request_id,
-            )
+            ).info("request.outgoing")
             REQUEST_CONTEXT.reset(token)
