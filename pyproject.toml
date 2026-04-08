@@ -16,6 +16,10 @@ asyncio_mode = "auto"
 filterwarnings = [
     "ignore:.*uvicorn.workers.*:DeprecationWarning",
     "ignore:.*wait_for_logs.*:DeprecationWarning",
+    "ignore:.*wait_container_is_ready.*:DeprecationWarning",
+]
+markers = [
+    "slow: tests requiring external services (Docker/testcontainers) — run with -m slow",
 ]
 
 [tool.ruff]

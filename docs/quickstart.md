@@ -13,6 +13,7 @@
 ```bash
 uv add axiom-core
 uv add axiom-fastapi
+uv add axiom-fastapi[rate-limiter]
 uv add axiom-sqlalchemy[sqlite]
 uv add axiom-cache
 uv add axiom-email[jinja2,aiosmtplib]
@@ -69,6 +70,41 @@ app.add_middleware(RequestLoggingMiddleware)
 - FastAPI app factory;
 - стандартные handlers для `BaseError`, validation и unhandled exceptions;
 - middleware для request logging.
+
+### Встроенный Rate Limiter
+
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
+
+from axiom.fastapi.exception_handler import register_all_handlers
+from axiom.fastapi.rate_limiter import (
+    IPPolicy,
+    RateLimitConfig,
+    rate_limit,
+    rate_limiter_lifespan,
+)
+
+config = RateLimitConfig(policies=[IPPolicy(limit="100/minute")])
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with rate_limiter_lifespan(app, config):
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+register_all_handlers(app)
+
+
+@app.get("/items", dependencies=[Depends(rate_limit("10/minute"))])
+async def list_items() -> dict[str, list[object]]:
+    return {"items": []}
+```
+
+Для нескольких инстансов или worker-ов подключайте Redis backend вместо in-memory.
 
 ## 4. Кэширование
 

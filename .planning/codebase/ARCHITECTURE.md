@@ -1,6 +1,6 @@
 # Architecture
 
-**Analysis Date:** 2026-04-07
+**Analysis Date:** 2026-04-09
 
 ## Pattern Overview
 
@@ -25,8 +25,8 @@
 **Web Framework Integration (axiom-fastapi):**
 - Purpose: Wraps FastAPI with opinionated defaults — app factory, middleware, exception handlers, runners
 - Location: `axiom-fastapi/src/axiom/fastapi/`
-- Contains: `create_app(AppConfig)` factory, `AppConfig`, `ErrorMiddleware`, `RequestLoggingMiddleware`, `register_all_handlers()`, `UvicornSettings`/`run_uvicorn()`, Gunicorn runner, `rate_limiter/` package (stub)
-- Depends on: `axiom-core`, `fastapi`, `uvicorn`, `structlog`, `tomlkit`
+- Contains: `create_app(AppConfig)` factory, `AppConfig`, `AppStateManager`, `ErrorMiddleware`, `RequestLoggingMiddleware`, `register_all_handlers()`, `UvicornSettings`/`run_uvicorn()`, Gunicorn runner, and a working `rate_limiter/` package with backends, middleware, dependency factory, key builders, and policy providers
+- Depends on: `axiom-core`, `fastapi`, `uvicorn`, `structlog`, `tomlkit`; optional rate-limiter extras add `limits`, `axiom-redis`, `pydantic-settings`
 - Used by: application services built on top of this framework
 
 **Authentication (axiom-auth):**
@@ -109,12 +109,13 @@
 1. Request arrives at Uvicorn/Gunicorn ASGI server
 2. `ErrorMiddleware` wraps the entire request for last-resort error catching
 3. `RequestLoggingMiddleware` logs request metadata, sets `RequestContext` (request_id, user, tenant) via `ContextVar`
-4. FastAPI routes the request to the endpoint handler
-5. Endpoint calls Controller methods (e.g., `AsyncPostgresController.get_by_id()`)
-6. Controller delegates to Repository (e.g., `AsyncPostgresRepository`) which executes the database query
-7. Repository returns ORM model; Controller wraps it in `PaginationResponse` or raises `NotFoundError`
-8. FastAPI exception handlers (`register_all_handlers`) convert `BaseError` subclasses to structured JSON (`ErrorDetail`)
-9. Response returns through middleware chain
+4. Optional `RateLimitMiddleware` or `rate_limit()` dependency checks request quotas through `RateLimiterService` stored in `app.state`
+5. FastAPI routes the request to the endpoint handler
+6. Endpoint calls Controller methods (e.g., `AsyncPostgresController.get_by_id()`)
+7. Controller delegates to Repository (e.g., `AsyncPostgresRepository`) which executes the database query
+8. Repository returns ORM model; Controller wraps it in `PaginationResponse` or raises `NotFoundError`
+9. FastAPI exception handlers (`register_all_handlers`) convert `BaseError` subclasses to structured JSON (`ErrorDetail`)
+10. Response returns through middleware chain
 
 **Repository→Controller Data Flow:**
 
@@ -176,6 +177,16 @@
 - Examples: `axiom-fastapi/src/axiom/fastapi/app/config.py`, `axiom-fastapi/src/axiom/fastapi/app/builder.py`
 - Pattern: Pydantic model with `model_validator` to auto-fill metadata from `pyproject.toml`; `create_app(config)` wires middleware and exception handlers
 
+**AppStateManager:**
+- Purpose: Typed accessor for long-lived application services stored in `app.state`
+- Examples: `axiom-fastapi/src/axiom/fastapi/app/state.py`
+- Pattern: Infra components such as `RateLimiterService` are attached once during startup/lifespan and resolved from dependencies/middleware without repeated `getattr(...)` boilerplate
+
+**RateLimiterService + PolicyProvider:**
+- Purpose: Request throttling orchestration for FastAPI applications
+- Examples: `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py`, `axiom-fastapi/src/axiom/fastapi/rate_limiter/policy_provider/base.py`
+- Pattern: backend (`RateLimitBackend`) tracks counters, key builder derives subject key, provider returns ordered `RateLimitPolicy | PolicyGroup` items, service evaluates them for middleware or per-route dependency usage
+
 ## Entry Points
 
 **ASGI Application Factory:**
@@ -214,4 +225,4 @@
 
 ---
 
-*Architecture analysis: 2026-04-07*
+*Architecture analysis: 2026-04-09*

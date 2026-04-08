@@ -38,6 +38,7 @@
 - **Controller** — `super().__init__(...)`, `@transactional` для кастомной логики
 - **Factory** — `partial(Repository, model=Model)`, сборка в `Depends`
 - **Router** — `exclude_unset=True` для PATCH, structured logging, `response_model`
+- **FastAPI infra** — `lifespan + app.state` для app-wide service wiring (`axiom-fastapi.rate_limiter`)
 - **Тесты** — in-memory SQLite conftest, `_make_entity(**kwargs)` helper
 
 ### `ddd/` — DDD сервис
@@ -59,5 +60,7 @@
 | Protocol backend | `axiom-email/src/axiom/email/interfaces.py` |
 | BaseError | `axiom-core/src/axiom/core/exceptions/base.py` |
 | Domain entity | `axiom-core/src/axiom/core/entities/domain.py` |
+| App-wide FastAPI state | `axiom-fastapi/src/axiom/fastapi/app/state.py` |
+| Lifespan-based rate limiter wiring | `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py` |
 | Test conftest (DB) | `oltp/axiom-sqlalchemy/tests/conftest.py` |
 | Test fixtures (models) | `oltp/axiom-sqlalchemy/tests/fixtures/models.py` |

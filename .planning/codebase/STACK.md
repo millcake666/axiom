@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Analysis Date:** 2026-04-07
+**Analysis Date:** 2026-04-09
 
 ## Languages
 
@@ -35,6 +35,7 @@ Each package sets `[tool.hatch.build.targets.wheel] packages = ["src/axiom"]` to
 - `fastapi>=0.115.0,<1` — HTTP API framework (`axiom-fastapi/pyproject.toml`)
 - `uvicorn>=0.29.0,<1` — ASGI server (default runner)
 - `gunicorn>=21.0` + `uvicorn[standard]` — production multi-worker runner (optional extra in `axiom-fastapi`)
+- `limits>=3.0,<4` — rate limiting algorithms/backends (optional `axiom-fastapi[rate-limiter]`)
 
 **Data Validation:**
 - `pydantic>=2.0` — model/schema validation throughout
@@ -50,13 +51,15 @@ Each package sets `[tool.hatch.build.targets.wheel] packages = ["src/axiom"]` to
 - `pytest-cov>=4.0` — coverage reporting (most packages)
 - `httpx>=0.27.0,<1` — HTTP test client for FastAPI (`axiom-fastapi` dev)
 - `testcontainers[mailpit]>=4.0.0` — integration test container for SMTP (`axiom-email` dev)
-- `fakeredis[asyncio]>=2.0.0` — in-process Redis mock (`axiom-redis`, `axiom-cache` dev)
+- `testcontainers[redis]>=4.0.0` — integration Redis container for `axiom-fastapi` rate limiter tests
+- `fakeredis>=2.0.0` — in-process Redis mock (`axiom-redis`, `axiom-cache`, `axiom-fastapi` dev)
 - `mongomock>=4.0` + `mongomock-motor>=0.0.21` — MongoDB mock (`axiom-beanie` dev)
 
 ## Key Dependencies
 
 **Critical (runtime):**
 - `redis[asyncio,hiredis]>=5.0.0,<6` — Redis client with hiredis C parser (`axiom-redis/pyproject.toml`)
+- `limits>=3.0,<4` — request quota algorithms and Redis/in-memory storage strategy (`axiom-fastapi[rate-limiter]`)
 - `sqlalchemy[asyncio]>=2.0` — async ORM (`oltp/axiom-sqlalchemy/pyproject.toml`)
 - `beanie>=2.1.0` + `motor>=3.0` + `pymongo>=4.0` — MongoDB async ODM (`oltp/axiom-beanie/pyproject.toml`)
 - `aiobotocore>=2.15.0,<3` + `boto3>=1.35.0,<2` — async S3 / AWS (`axiom-objectstore/pyproject.toml`)
@@ -109,7 +112,7 @@ Each package sets `[tool.hatch.build.targets.wheel] packages = ["src/axiom"]` to
 
 **Development:**
 - Python 3.13, uv package manager
-- Docker (for testcontainers in `axiom-email` tests — Mailpit container)
+- Docker (for testcontainers in `axiom-email` Mailpit tests and `axiom-fastapi` Redis rate limiter tests)
 
 **Production:**
 - ASGI: uvicorn (default) or gunicorn+uvicorn (multi-worker)
@@ -117,4 +120,4 @@ Each package sets `[tool.hatch.build.targets.wheel] packages = ["src/axiom"]` to
 
 ---
 
-*Stack analysis: 2026-04-07*
+*Stack analysis: 2026-04-09*

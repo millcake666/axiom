@@ -353,6 +353,49 @@ async def update_order(
 
 ---
 
+## FastAPI infra sub-system: lifespan + app.state
+
+Для инфраструктурных компонентов уровня приложения, которым нужен lifecycle и доступ из middleware/dependency, используем отдельный service + typed accessor к `app.state`.
+
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
+
+from axiom.fastapi.rate_limiter import (
+    IPPolicy,
+    RateLimitConfig,
+    rate_limit,
+    rate_limiter_lifespan,
+)
+
+config = RateLimitConfig(policies=[IPPolicy(limit="100/minute")])
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with rate_limiter_lifespan(app, config):
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/items", dependencies=[Depends(rate_limit("10/minute"))])
+async def list_items() -> dict[str, list[object]]:
+    return {"items": []}
+```
+
+**Правила:**
+- Инициализируй backend/service один раз на app lifespan, а не на каждый запрос.
+- Храни long-lived service в `app.state` через `AppStateManager`, а не через разрозненные `getattr(...)` по коду.
+- Middleware и dependencies должны разделять один и тот же service instance.
+- `Settings` используются для env-based wiring, `Config` — для программной сборки объекта.
+
+**Reference:** `axiom-fastapi/src/axiom/fastapi/app/state.py`, `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py`, `axiom-fastapi/src/axiom/fastapi/rate_limiter/dependency.py`
+
+---
+
 ## Exceptions
 
 ### Иерархия
@@ -575,6 +618,7 @@ def mailpit():
 | `AsyncInMemoryMailBackend` в тестах email | без реального SMTP |
 | Protocol для внешних расширений | `AsyncMailBackend`, `MailHook` |
 | ABC для внутренних расширений | `AsyncCacheBackend` |
+| Lifespan + `AppStateManager` для app-wide infra | `RateLimiterService` в `app.state` |
 | `exception/` sub-package в каждом пакете | extends `BaseError` |
 | `lazy="selectin"` для relationships | избегает N+1 |
 
@@ -589,6 +633,7 @@ def mailpit():
 | `model_dump()` без `exclude_unset=True` для PATCH | Перезаписывает поля, которые не менялись |
 | `from axiom.cache.redis.async_backend import AsyncRedisCache` | Импортируй из `axiom.cache`, не из внутренних модулей |
 | `structlog` в новых пакетах | Canonical logger — `loguru` через `axiom.core.logger` |
+| Создавать backend/service внутри dependency на каждый запрос | Ломает lifecycle и дублирует stateful infra |
 | Добавлять поля в `exclude_fields` глобально в settings | Лучше передавать явно в `super().__init__(..., exclude_fields=list)` |
 
 ---
@@ -607,6 +652,8 @@ def mailpit():
 | FilterRequest DSL | `axiom-core/src/axiom/core/filter/expr.py` |
 | ABC backend (cache) | `axiom-cache/src/axiom/cache/base/__init__.py` |
 | Protocol backend (email) | `axiom-email/src/axiom/email/interfaces.py` |
+| App-wide state accessor | `axiom-fastapi/src/axiom/fastapi/app/state.py` |
+| Rate limiter lifecycle wiring | `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py` |
 | AsyncMailClient (client с hooks) | `axiom-email/src/axiom/email/client.py` |
 | AsyncBaseRepository | `oltp/axiom-sqlalchemy/src/axiom/oltp/sqlalchemy/abs/repository/async_.py` |
 | AsyncBaseController | `oltp/axiom-sqlalchemy/src/axiom/oltp/sqlalchemy/abs/controller/async_.py` |

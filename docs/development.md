@@ -79,6 +79,7 @@ axiom-some-package/
 - pytest в каждом пакете отдельно;
 - async tests идут через `pytest-asyncio`;
 - для Redis используется `fakeredis`;
+- Docker-based integration tests помечаются `@pytest.mark.slow` и запускаются отдельно при необходимости;
 - для MongoDB — `mongomock` / `mongomock-motor`;
 - для email integration tests используется `testcontainers`.
 

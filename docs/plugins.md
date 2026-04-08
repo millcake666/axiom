@@ -5,7 +5,7 @@
 | Пакет | Namespace | Зрелость | Ключевой public API | Документация |
 |---|---|---|---|---|
 | `axiom-core` | `axiom.core` | высокая | `BaseAppSettings`, `BaseError`, `FilterRequest`, `configure_logger` | [`axiom-core/README.md`](../axiom-core/README.md) |
-| `axiom-fastapi` | `axiom.fastapi` | средняя/высокая | `AppConfig`, `create_app`, `RequestLoggingMiddleware`, `run_uvicorn` | [`axiom-fastapi/README.md`](../axiom-fastapi/README.md) |
+| `axiom-fastapi` | `axiom.fastapi` | средняя/высокая | `AppConfig`, `create_app`, `RequestLoggingMiddleware`, `rate_limit`, `RateLimitMiddleware`, `run_uvicorn` | [`axiom-fastapi/README.md`](../axiom-fastapi/README.md) |
 | `axiom-cache` | `axiom.cache` | высокая | `AsyncInMemoryCache`, `AsyncRedisCache`, `cached`, `invalidate`, `CacheManager` | [`axiom-cache/README.md`](../axiom-cache/README.md) |
 | `axiom-redis` | `axiom.redis` | высокая | `AsyncRedisClient`, `SyncRedisClient`, `RedisSettings`, factory functions | [`axiom-redis/README.md`](../axiom-redis/README.md) |
 | `axiom-email` | `axiom.email` | высокая | `AsyncMailClient`, `SyncMailClient`, `JinjaTemplateRenderer`, `LoggingHook` | [`axiom-email/README.md`](../axiom-email/README.md) |
@@ -28,7 +28,8 @@
 ### Если нужен HTTP-слой
 
 - берите `axiom-fastapi`, если нужен app factory, middleware и стандартные handlers;
-- не рассчитывайте пока на встроенный rate limiter: `axiom.fastapi.rate_limiter` сейчас пустой.
+- подключайте `axiom-fastapi[rate-limiter]`, если нужен встроенный rate limiter;
+- для distributed-limit сценариев используйте Redis backend, а не in-memory backend.
 
 ### Если нужен cache
 

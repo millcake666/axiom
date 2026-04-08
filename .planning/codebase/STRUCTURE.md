@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-04-07
+**Analysis Date:** 2026-04-09
 
 ## Directory Layout
 
@@ -29,13 +29,21 @@ axiom/                              # Repository root
 │
 ├── axiom-fastapi/                  # FastAPI integration package
 │   └── src/axiom/fastapi/
-│       ├── app/                    # create_app(), AppConfig
+│       ├── app/                    # create_app(), AppConfig, AppStateManager
 │       ├── docs/                   # Custom docs routes
 │       ├── exception_handler/      # register_all_handlers(), domain/http/validation/unhandled handlers
 │       ├── middleware/
 │       │   ├── error/              # ErrorMiddleware (last-resort ASGI catch-all)
 │       │   └── logging/            # RequestLoggingMiddleware
-│       ├── rate_limiter/           # Rate limiting (stub)
+│       ├── rate_limiter/
+│       │   ├── backend/            # InMemoryRateLimitBackend, RedisRateLimitBackend
+│       │   ├── core/               # Policy, result, scope, algorithm domain models
+│       │   ├── key_builder/        # IP / user / API key identity extraction
+│       │   ├── policy_provider/    # Static, memory, Redis, Postgres, cached providers
+│       │   ├── config.py           # RateLimitSettings, RateLimitConfig
+│       │   ├── dependency.py       # rate_limit() Depends factory
+│       │   ├── middleware.py       # RateLimitMiddleware
+│       │   └── service.py          # RateLimiterService, setup helpers, lifespan wiring
 │       └── runner/                 # run_uvicorn(), Gunicorn runner
 │
 ├── axiom-auth/                     # Authentication & authorization
@@ -151,8 +159,8 @@ axiom/                              # Repository root
 
 **`axiom-fastapi/`:**
 - Purpose: FastAPI application factory and opinionated wiring; used by any axiom-based HTTP service
-- Contains: `create_app()`, `AppConfig`, middleware, exception handlers, ASGI runners
-- Key files: `axiom-fastapi/src/axiom/fastapi/app/builder.py`, `axiom-fastapi/src/axiom/fastapi/app/config.py`, `axiom-fastapi/src/axiom/fastapi/exception_handler/__init__.py`
+- Contains: `create_app()`, `AppConfig`, `AppStateManager`, middleware, exception handlers, ASGI runners, built-in rate limiting primitives
+- Key files: `axiom-fastapi/src/axiom/fastapi/app/builder.py`, `axiom-fastapi/src/axiom/fastapi/app/config.py`, `axiom-fastapi/src/axiom/fastapi/app/state.py`, `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py`
 
 **`oltp/axiom-sqlalchemy/`:**
 - Purpose: Primary relational database access layer; provides the Repository + Controller pattern for SQLAlchemy
@@ -186,6 +194,8 @@ axiom/                              # Repository root
 - `axiom-fastapi/src/axiom/fastapi/app/builder.py`: `create_app(config)` — the application factory
 - `axiom-fastapi/src/axiom/fastapi/runner/uvicorn.py`: `run_uvicorn()` — ASGI server startup
 - `axiom-fastapi/src/axiom/fastapi/runner/gunicorn.py`: Gunicorn multi-worker startup
+- `axiom-fastapi/src/axiom/fastapi/rate_limiter/dependency.py`: `rate_limit()` — per-route quota enforcement
+- `axiom-fastapi/src/axiom/fastapi/rate_limiter/service.py`: `rate_limiter_lifespan()` / `setup_rate_limiter()` — rate limiter wiring
 
 **Configuration:**
 - `pyproject.toml`: Workspace root; ruff, mypy, pytest config shared across all packages
@@ -204,6 +214,7 @@ axiom/                              # Repository root
 **Testing:**
 - Each package has a `tests/` directory at its package root (e.g., `axiom-cache/tests/`, `oltp/axiom-sqlalchemy/tests/`)
 - `axiom-email/tests/unit/` and `axiom-email/tests/integration/` — split by test type
+- `axiom-fastapi/tests/unit/rate_limiter/` and `axiom-fastapi/tests/integration/rate_limiter/` — rate limiter coverage by layer
 - `oltp/axiom-sqlalchemy/tests/fixtures/` — shared pytest fixtures
 
 ## Namespace Conventions

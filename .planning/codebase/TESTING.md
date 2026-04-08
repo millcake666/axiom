@@ -1,6 +1,6 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-04-07
+**Analysis Date:** 2026-04-09
 
 ## Test Framework
 
@@ -43,6 +43,7 @@ uv run pytest
 - `tests/unit/` — pure unit tests (e.g., `axiom-email/tests/unit/`)
 - `tests/integration/` — integration tests requiring external services (e.g., `axiom-email/tests/integration/`)
 - `tests/fixtures/` — shared model definitions and test data factories (e.g., `oltp/axiom-sqlalchemy/tests/fixtures/models.py`)
+- `tests/integration/**/test_*container.py` — Docker/testcontainers coverage, typically marked `pytest.mark.slow`
 
 **Structure:**
 ```
@@ -192,6 +193,8 @@ backend.send = AsyncMock(return_value=SendResult(success=True))
 
 **Redis:** `fakeredis` (sync) and `fakeredis.aioredis` (async) — used in `axiom-redis` and `axiom-cache`
 
+**Rate limiting / Redis:** `fakeredis` for fast provider tests; `testcontainers[redis]` for real Redis backend integration in `axiom-fastapi/tests/integration/rate_limiter/test_redis_container.py`
+
 **MongoDB/Beanie:** `mongomock` + `mongomock_motor.AsyncMongoMockClient` — used in `oltp/axiom-beanie`
 
 **SQLAlchemy:** In-memory SQLite engine (`sqlite:///:memory:` and `sqlite+aiosqlite:///:memory:`)
@@ -238,6 +241,11 @@ cd axiom-cache && uv run pytest tests --cov=src/axiom/cache --cov-report=term-mi
 - Examples: `oltp/axiom-sqlalchemy/tests/test_async_repository.py` (SQLite in-memory), `axiom-email/tests/integration/test_mailpit_smtp.py` (Docker container)
 - Integration tests requiring Docker placed in `tests/integration/` subdirectory
 
+**Slow / containerized tests:**
+- Use `pytest.mark.slow` for tests that need Docker or external services
+- Current example: `axiom-fastapi/tests/integration/rate_limiter/test_redis_container.py`
+- Root pytest config documents the shared `slow` marker
+
 **E2E Tests:**
 - Not present — no cross-package or full-application end-to-end test suite detected
 
@@ -250,6 +258,15 @@ async def test_create(self, repo):
     user = await repo.create({"name": "Alice", "email": "alice@test.com", "age": 30})
     await repo.session.flush()
     assert user.name == "Alice"
+```
+
+**FastAPI integration testing:**
+```python
+from httpx import ASGITransport, AsyncClient
+
+async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    response = await client.get("/items")
+    assert response.status_code == 200
 ```
 
 **Error Testing:**

@@ -1,6 +1,6 @@
 # External Integrations
 
-**Analysis Date:** 2026-04-07
+**Analysis Date:** 2026-04-09
 
 ## APIs & External Services
 
@@ -48,6 +48,14 @@
   - Sync client: `axiom-redis/src/axiom/redis/sync_client.py`
   - Cache abstraction layer: `axiom-cache/src/axiom/cache/` (in-memory + Redis backends)
   - Redis Streams queue backend: `axiom-queue/src/axiom/queue/redis_stream/`
+
+**HTTP Rate Limiting:**
+- `limits>=3.0,<4` — rate limiting algorithms and storage adapters for `axiom.fastapi.rate_limiter`
+  - Algorithms: fixed window, elastic/sliding window, moving window
+  - In-memory backend: `axiom-fastapi/src/axiom/fastapi/rate_limiter/backend/memory.py`
+  - Redis backend: `axiom-fastapi/src/axiom/fastapi/rate_limiter/backend/redis.py`
+  - Redis storage: `limits.storage.RedisStorage` plus `axiom-redis` `AsyncRedisClient` for health checks and cleanup
+  - Dynamic policy sources: in-memory, Redis, Postgres repository protocol, cached wrapper
 
 **Analytical (OLAP):**
 - ClickHouse — analytical queries and data ingestion
@@ -137,6 +145,7 @@
 |-------------|-------------|
 | App base | `APP_HOST`, `APP_PORT`, `APP_STAGE`, `APP_NAME`, `DEBUG` |
 | Redis | `REDIS_URL`, `REDIS_USE_CLUSTER`, `REDIS_MAX_CONNECTIONS` |
+| Rate limiting | `RATE_LIMIT_BACKEND`, `RATE_LIMIT_ENABLED`, `RATE_LIMIT_ENV`, `RATE_LIMIT_EXEMPT_PATHS`, `RATE_LIMIT_FAILURE_STRATEGY`, `RATE_LIMIT_KEY_PREFIX` |
 | S3/ObjectStore | `S3_AWS_ACCESS_KEY_ID`, `S3_AWS_SECRET_ACCESS_KEY`, `S3_ENDPOINT_URL`, `S3_REGION_NAME`, `S3_BUCKET_NAME` |
 | Email (Yandex) | `username`, `password` fields in `YandexSMTPConfig` dataclass |
 
@@ -152,4 +161,4 @@
 
 ---
 
-*Integration audit: 2026-04-07*
+*Integration audit: 2026-04-09*
