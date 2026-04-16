@@ -638,6 +638,58 @@ def mailpit():
 
 ---
 
+## ClickHouse Repository
+
+`axiom-clickhouse` предоставляет OLAP-репозиторий поверх ClickHouse (через `clickhouse-connect`).
+Полная документация: [`olap/axiom-clickhouse/README.md`](../olap/axiom-clickhouse/README.md).
+
+### Быстрый пример
+
+```python
+from axiom.olap.clickhouse import ClickHouseRepository, ClickHouseSettings
+
+settings = ClickHouseSettings()  # читает из env vars
+repo = ClickHouseRepository.from_settings(settings, table="events", database="analytics")
+
+# Read
+result = repo.fetch_all()              # QueryResult[dict]
+paged = repo.fetch_paged(spec)         # PagedResult[dict]
+
+# Write
+repo.insert_many(rows)                 # BulkInsertResult
+repo.insert_chunked(rows, 10_000)      # partial failure tolerant
+
+# Aggregation
+from axiom.olap.clickhouse import AggregateSpec, GroupBySpec, MetricSpec, AggFunction
+
+result = repo.aggregate(AggregateSpec(
+    metrics=[MetricSpec(function=AggFunction.COUNT, field="id", alias="n")],
+    group_by=GroupBySpec(fields=["event_type"]),
+))
+
+# Raw escape hatch
+result = repo.raw("SELECT toDate(ts) day, count() FROM events GROUP BY day")
+```
+
+### Versioned/append сценарий
+
+```python
+from axiom.olap.clickhouse import VersionedClickHouseRepository
+
+repo = VersionedClickHouseRepository.from_settings(
+    settings, table="products", version_column="version", is_deleted_column="is_deleted"
+)
+repo.append_version(row={"product_id": 1, "price": 999}, version=1)
+repo.soft_delete(id_column="product_id", id_value=1, version=2)
+active = repo.read_active()
+```
+
+**Когда НЕ использовать `update_by_filter` / `delete_by_filter`:**
+ClickHouse-мутации (`ALTER TABLE UPDATE/DELETE`) переписывают целые parts на диск и выполняются
+асинхронно. Для частых изменений используй `VersionedClickHouseRepository` + `ReplacingMergeTree`.
+
+---
+
 ## Canonical reference locations
 
 | Что ищешь | Файл |

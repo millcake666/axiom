@@ -463,6 +463,48 @@ Stub-пакеты явно помечены как skeleton. Aspirational promis
 
 ---
 
+## D-018 — axiom-clickhouse: clickhouse-connect, FilterRequest из axiom-core, специализированные ABC
+
+**Status:** accepted
+
+**Context:** ClickHouse — аналитическая СУБД с принципиально иной природой операций (append,
+мутации, ReplacingMergeTree). Нужно было решить: использовать ли общую базу с `axiom-opensearch`,
+выбрать ли один монолитный класс или специализированные ABC, и как передавать фильтры.
+
+**Decision:**
+
+1. **`clickhouse-connect` как единственный клиент** — поддерживает sync (`get_client`) и async
+   (`get_async_client`) с реальными клиентами, без fake-async обёрток. Native protocol
+   (`clickhouse-driver`) не включён — HTTP достаточен для аналитических задач.
+
+2. **Нет общей базы с `axiom-opensearch`** — оба пакета независимы. Попытка создать общий
+   OLAP-базовый класс привела бы к ложным абстракциям: операции ClickHouse и OpenSearch
+   семантически несовместимы.
+
+3. **Специализированные ABC** вместо монолитного класса:
+   `ClickHouseReadRepository`, `ClickHouseWriteRepository`, `ClickHouseAggRepository`,
+   `ClickHouseSchemaManager`, `ClickHouseMutationManager`. `ClickHouseRepository` — facade,
+   объединяющий их через composition/multiple inheritance.
+
+4. **`FilterRequest`/`FilterParam`/`QueryOperator` из `axiom-core`** — единый DSL фильтрации
+   (как в `axiom-sqlalchemy` и `axiom-beanie`). CH-специфичные объекты (`AggregateSpec`,
+   `GroupBySpec`, `MetricSpec`, `PageSpec`) — новые типы в `axiom.olap.clickhouse.query`.
+
+5. **`VersionedClickHouseRepository`** — отдельный класс для append/versioned сценариев
+   (ReplacingMergeTree), не наследует от `ClickHouseWriteRepository`.
+
+**Consequences:**
+- Consumer использует один `ClickHouseRepository` для типовых сценариев или специализированные
+  ABC для тонкой настройки.
+- `update_by_filter`/`delete_by_filter` существуют, но с явными docstring-предупреждениями
+  об async-природе мутаций ClickHouse.
+- Typed API доступен через `TypedClickHouseRepository[T]` с `row_factory`.
+
+**What not to do:** не добавлять общий OLAP-базовый класс для ClickHouse и OpenSearch.
+Не реализовывать sync как обёртку над async (см. D-017).
+
+---
+
 ## Открытые Вопросы / Отложенные Решения
 
 ### OQ-001 — Миграция structlog → loguru в axiom-fastapi

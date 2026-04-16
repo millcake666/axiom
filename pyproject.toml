@@ -76,3 +76,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "gunicorn.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "clickhouse_connect.*"
+ignore_missing_imports = true

@@ -37,6 +37,11 @@ def create_app(config: AppConfig) -> FastAPI:
     if config.docs_config is not None:
         from axiom.fastapi.docs.routes import include_docs_routes
 
-        include_docs_routes(app, config.docs_config)
+        include_docs_routes(
+            app,
+            config.docs_config,
+            docs_url=config.docs_url,
+            redoc_url=config.redoc_url,
+        )
 
     return app

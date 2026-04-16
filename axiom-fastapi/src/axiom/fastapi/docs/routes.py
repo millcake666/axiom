@@ -26,21 +26,28 @@ class DocsConfig(BaseModel):
     oauth2_redirect_url: str | None = None
 
 
-def include_docs_routes(app: FastAPI, config: DocsConfig) -> None:
+def include_docs_routes(
+    app: FastAPI,
+    config: DocsConfig,
+    docs_url: str | None = "/docs",
+    redoc_url: str | None = "/redoc",
+) -> None:
     """Register customizable Swagger/ReDoc routes on the app.
 
     Args:
         app: FastAPI application instance.
         config: Docs configuration with optional CDN URL overrides.
+        docs_url: Path to register Swagger UI at. Defaults to "/docs".
+        redoc_url: Path to register ReDoc at. Defaults to "/redoc".
     """
     swagger_js = config.swagger_js_url or _DEFAULT_SWAGGER_JS
     swagger_css = config.swagger_css_url or _DEFAULT_SWAGGER_CSS
     redoc_js = config.redoc_js_url or _DEFAULT_REDOC_JS
     oauth2_redirect = config.oauth2_redirect_url or "/docs/oauth2-redirect"
 
-    if app.docs_url is not None:
+    if docs_url is not None:
 
-        @app.get(app.docs_url, include_in_schema=False)
+        @app.get(docs_url, include_in_schema=False)
         async def swagger_ui() -> object:
             return get_swagger_ui_html(
                 openapi_url=app.openapi_url or "/openapi.json",
@@ -54,9 +61,9 @@ def include_docs_routes(app: FastAPI, config: DocsConfig) -> None:
         async def swagger_redirect() -> object:
             return get_swagger_ui_oauth2_redirect_html()
 
-    if app.redoc_url is not None:
+    if redoc_url is not None:
 
-        @app.get(app.redoc_url, include_in_schema=False)
+        @app.get(redoc_url, include_in_schema=False)
         async def redoc() -> object:
             return get_redoc_html(
                 openapi_url=app.openapi_url or "/openapi.json",
